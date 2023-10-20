@@ -1,5 +1,4 @@
 #include "BaseList.h"
-#include "AnitaVersion.h" 
 #include "TFile.h" 
 #include "TMath.h" 
 #include <cmath>
@@ -198,46 +197,14 @@ struct pathlist_impl
 
 static std::vector<base> & bases()
 {
-  if (AnitaVersion::get() == 2) 
-  {
-    static baselist_impl bl(2); 
-    return bl.bases; 
-  }
-
-  else if (AnitaVersion::get() == 3) 
-  {
-    static baselist_impl bl(3); 
-    return bl.bases; 
-
-  }
-  else if (AnitaVersion::get() == 4) 
-  {
-    static baselist_impl bl(4); 
-    return bl.bases; 
-  }
-
-
-  fprintf(stderr,"Don't have bases for %d\n", AnitaVersion::get()); 
-  return no_bases; 
+   static baselist_impl bl(4); 
+   return bl.bases; 
 }
 
 static std::vector<path> & paths()
 {
-
-  if (AnitaVersion::get() == 3) 
-  {
-    static pathlist_impl pl(3); 
-    return pl.paths; 
-
-  }
-  else if (AnitaVersion::get() == 4) 
-  {
-    static pathlist_impl pl(4); 
-    return pl.paths; 
-  }
-
-  fprintf(stderr,"Don't have paths for %d\n", AnitaVersion::get()); 
-  return no_paths; 
+   static pathlist_impl pl(4); 
+   return pl.paths; 
 }
 
 const BaseList::base& BaseList::getBase(UInt_t index){ 
@@ -276,8 +243,8 @@ size_t BaseList::getNumAbstractBases(){
 void BaseList::makeBaseList()
 {
   makeEmptyBaseList(); 
-  fillBases(bases(), AnitaVersion::get()); 
-  fillPaths(paths(), AnitaVersion::get()); 
+  fillBases(bases(), 4); 
+  fillPaths(paths(), 4); 
 }
 
 
