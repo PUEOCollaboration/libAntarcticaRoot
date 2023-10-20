@@ -416,13 +416,13 @@ namespace Geoid {
     phi = other.phi;
     easting = other.easting;
     northing = other.northing;
-    for(int i=0; i < fCartAtLastGeoidCalc.size(); i++){
+    for(size_t i=0; i < fCartAtLastGeoidCalc.size(); i++){
       fCartAtLastGeoidCalc[i] = other.fCartAtLastGeoidCalc[i];
     }
-    for(int i=0; i < fCartAtLastAngleCalc.size(); i++){
+    for(size_t i=0; i < fCartAtLastAngleCalc.size(); i++){
       fCartAtLastAngleCalc[i] = other.fCartAtLastAngleCalc[i];
     }
-    for(int i=0; i < fLonLatAtLastEastNorthCalc.size(); i++){
+    for(size_t i=0; i < fLonLatAtLastEastNorthCalc.size(); i++){
       fLonLatAtLastEastNorthCalc[i] = other.fLonLatAtLastEastNorthCalc[i];
     }    
   }
