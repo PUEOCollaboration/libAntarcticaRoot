@@ -1,7 +1,6 @@
 #include "AntarcticaGeometry.h" 
 #include "Geoid.h" 
 #include "RampdemReader.h" 
-#include "Adu5Pat.h" 
 #include "FFTtools.h"
 #include "TRandom.h" 
 #include "TGraph2D.h" 

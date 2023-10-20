@@ -1,8 +1,8 @@
 #include "AntarcticAtmosphere.h" 
 #include "TGraph.h" 
 #include "TAxis.h" 
-#include "Adu5Pat.h"
 #include "math.h"
+#include "AntarcticaGeometry.h" 
 
 #ifdef USE_GEOGRAPHIC_LIB
 #include "GeographicLib/Geoid.hpp" 
@@ -186,14 +186,16 @@ double AntarcticAtmosphere::MSLtoWGS84(double h, double lat, double lon, Geoid g
   return  getGeoid(g).ConvertHeight ( lat, lon, h, GeographicLib::Geoid::GEOIDTOELLIPSOID); 
 }
 
-double AntarcticAtmosphere::WGS84toMSL(const Adu5Pat * pat, Geoid g)
+double AntarcticAtmosphere::WGS84toMSL(const AntarcticCoord * c, Geoid g)
 {
-  return  getGeoid(g).ConvertHeight ( pat->latitude, pat->longitude, pat->altitude, GeographicLib::Geoid::ELLIPSOIDTOGEOID); 
+  AntarcticCoord wgs84  = c->as(AntarcticCoord::WGS84);
+
+  return  getGeoid(g).ConvertHeight ( wgs84.x, wgs84.y, wgs84.z, GeographicLib::Geoid::ELLIPSOIDTOGEOID); 
 }
 
 #else
 
-double AntarcticAtmosphere::WGS84toMSL(const Adu5Pat * pat, Geoid g )
+double AntarcticAtmosphere::WGS84toMSL(const AntarcticCoord * c, Geoid g )
 {
   static int nagged = 0; 
 
@@ -201,7 +203,7 @@ double AntarcticAtmosphere::WGS84toMSL(const Adu5Pat * pat, Geoid g )
   {
     fprintf(stderr,"Need GeographicLib for MSL conversions\n"); 
   }
-  return pat->altitude;
+  return c->as(AntarcticCoord::WGS84).z; 
 
 }
 

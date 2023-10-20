@@ -11,7 +11,6 @@
 #include <vector> 
 #include "TH2DAntarctica.h" 
 #include "TVector3.h" 
-#include "Adu5Pat.h" 
 #include "RefractionModel.h" 
 
 
@@ -36,11 +35,6 @@ class AntarcticCoord
     AntarcticCoord(const TVector3 & v) 
     {
       set(CARTESIAN, v.x(),v.y(),v.z()); 
-    }
-
-    AntarcticCoord(const Adu5Pat * pat) 
-    {
-      set(WGS84, pat->latitude, pat->longitude, pat->altitude); 
     }
 
     TVector3 v() const

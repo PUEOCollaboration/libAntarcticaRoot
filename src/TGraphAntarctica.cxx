@@ -1,8 +1,6 @@
 #include "TGraphAntarctica.h"
 #include "TROOT.h"
 #include "TVirtualPad.h"
-// #include "Adu5Pat.h"
-// #include "AnitaDataset.h"
 #include "TVirtualPad.h"
 
 ClassImp(TGraphAntarctica)

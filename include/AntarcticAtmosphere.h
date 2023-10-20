@@ -9,7 +9,7 @@
 
 
 class TGraph; 
-class Adu5Pat; 
+class AntarcticCoord; 
 namespace AntarcticAtmosphere
 {
 
@@ -26,7 +26,7 @@ namespace AntarcticAtmosphere
   double MSLtoWGS84( double h, double lat, double lon, Geoid g = EGM96_5)  ; 
 
   /** Convert from WGS84 altitude to height above mean sea level. Requires GeographicLib*/ 
-  double WGS84toMSL( const Adu5Pat * pat,  Geoid g = EGM96_5) ; 
+  double WGS84toMSL( const AntarcticCoord * c,  Geoid g = EGM96_5) ; 
 
 
   /** Atmospheric Parameters. 
