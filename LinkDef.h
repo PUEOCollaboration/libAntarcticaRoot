@@ -36,4 +36,6 @@
 #pragma link C++ class Refraction::RaytracerSpherical; 
 #pragma link C++ class Refraction::SphRay; 
 
+#pragma link C++ namespace pueo;
+#pragma link C++ class pueo::UsefulAttitude+;
 #endif
