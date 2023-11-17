@@ -14,6 +14,7 @@
 
 ClassImp(AntarcticCoord); 
 ClassImp(AntarcticSegmentationScheme); 
+ClassImp(PayloadParameters); 
 ClassImp(StereographicGrid); 
 
 template <int coarseness>
@@ -643,6 +644,242 @@ double AntarcticCoord::surfaceDistance(double lat0 , double lat1, double lon0, d
   return distance; 
 #endif
 
+}
+
+PayloadParameters::PayloadParameters(const pueo::nav::Attitude * gps, const AntarcticCoord & source_pos, const Refraction::Model * refract) 
+  : payload(AntarcticCoord::WGS84, gps->latitude, gps->longitude, gps->altitude), 
+    source(source_pos)
+{
+
+  payload.to(AntarcticCoord::CARTESIAN); 
+  //vector from source to payload
+
+  TVector3 p = payload.v(); 
+  TVector3 s = source.v(); 
+
+#ifndef USE_GEOGRAPHIC_LIB
+  TVector3 sprime = s; 
+  // this is stolen from AnitaGeomTool. Seems like it should be equivalent to a some form of rotateUz 
+  // wihch would probably be a more efficient way to do this without trig functions 
+  sprime.RotateZ(-1 * p.Phi()); 
+  sprime.RotateY(-1 * p.Theta()); 
+  sprime[2]=p.Mag()-fabs(sprime.z()); 
+
+  sprime.RotateZ(gps->heading*TMath::DegToRad()); 
+
+  //TODO: check if these axes need modification. Right now pitch and roll are 0 :) 
+  sprime.RotateY(-AnitaStaticAdu5Offsets::pitch *TMath::DegToRad()); 
+  sprime.RotateX(-AnitaStaticAdu5Offsets::roll *TMath::DegToRad()); 
+
+  source_phi = FFTtools::wrap(sprime.Phi() * TMath::RadToDeg(),360); 
+  source_theta = 90 - sprime.Theta() * TMath::RadToDeg(); 
+
+  //Now do the opposite 
+  TVector3 pprime = p;
+  pprime.RotateZ(-1*s.Phi()); 
+  pprime.RotateY(-1*s.Theta()); 
+  pprime[2] = s.Mag() - fabs(pprime.z()); 
+  payload_el = -FFTtools::wrap( 90 - pprime.Theta() * TMath::RadToDeg(), 180, 0); 
+  payload_az = pprime.Phi() * TMath::RadToDeg(); 
+
+#else
+
+  //vector from source to paylaod
+  TVector3 v = (s-p); 
+  //angle between v and p gives zenith angle. elevation is - 90. 
+  source_theta = p.Angle(v) * TMath::RadToDeg() - 90; 
+  payload_el =  s.Angle(v) * TMath::RadToDeg() - 90; 
+  //To get phi, we have to solve the inverse geodesic problem 
+  AntarcticCoord swgs84 = source.as(AntarcticCoord::WGS84); 
+  
+  GeographicLib::Geodesic::WGS84().Inverse(gps->latitude, gps->longitude, swgs84.x, swgs84.y, source_phi, payload_az); 
+  //rotate by 180 to get direction towards payload, and wrap 
+  payload_az = FFTtools::wrap(payload_az-180, 360); 
+
+
+  source_phi = FFTtools::wrap(gps->heading - source_phi,360); 
+#endif
+  apparent_source_theta = source_theta; 
+  apparent_payload_el = payload_el; 
+
+  if (refract) 
+  {
+    //We actually want the apparent anagle
+    double payload_el_correction = 0;
+    apparent_source_theta -= refract->getElevationCorrection(gps, &source, &payload_el_correction); 
+    apparent_payload_el+= payload_el_correction; 
+  }
+
+
+
+  distance = (source.v() - payload.v()).Mag(); 
+}
+
+
+
+PayloadParameters::PayloadParameters(const PayloadParameters & other) 
+{
+  source_phi = other.source_phi; 
+  source_theta = other.source_theta; 
+  payload_el = other.payload_el; 
+  payload_az = other.payload_az; 
+  distance = other.distance; 
+  payload = other.payload; 
+  source = other.source; 
+}
+//binary search to get the horizon. 
+double PayloadParameters::getHorizon(double phi, const pueo::nav::Attitude * gps, const Refraction::Model * refractionModel, double tol, RampdemReader::dataSet rampdemData) {
+#ifdef USE_GEOGRAPHIC_LIB
+  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  gps->latitude,  gps->longitude, gps->heading - phi); 
+  double low = 0; //low distance is 0 km
+  double high = 1000 * 1000 ;// high distance is 1000km, it means start from the (long, lat) of payload and go 1000km towards the phi direction. as used in the later function gs.Posiiton()
+  int count = 0;
+  while (1){
+    count ++;
+    // force get out of loop if count reach 100, something wrong happen, horizon did not find.
+    double mid = (low + high)/2.0;
+    double lat, lon; 
+    gl.Position(mid, lat, lon); 
+    AntarcticCoord coordinate(AntarcticCoord::WGS84, lat, lon, RampdemReader::SurfaceAboveGeoid(lon,lat,rampdemData)); 
+    PayloadParameters payloadParameter = PayloadParameters(gps, coordinate, refractionModel); 
+    //if the elevation of payload is nearly 0,  return the horizon theta in payload frame
+    if (fabs(payloadParameter.payload_el) < tol or count > 100){
+      if (count > 100){
+        std::cout<<"The loop never stop. the last payload elevation(0 is better) is: "<<payloadParameter.payload_el<<std::endl;
+      }
+      // std::ofstream myfile;
+      // myfile.open ("horizon.txt", std::ios::app);
+      // myfile << -1*payloadParameter.source_theta <<"\n";
+      // myfile.close();
+      return payloadParameter.source_theta;
+    }
+    if (payloadParameter.payload_el > 0 ){
+      low = mid;
+    }else{
+      high = mid;
+    }
+  }
+#endif
+
+}
+
+int PayloadParameters::findSourceOnContinent(double theta, double phi, const pueo::nav::Attitude * gps, PayloadParameters * p, 
+                                             const Refraction::Model * m, 
+                                             double collision_check_dx,
+                                             double min_dx, double tol, double min_el, 
+                                             RampdemReader::dataSet d) 
+{
+  //no chance. 
+  if (theta < 0 ) 
+  {
+    return 0; 
+  }
+
+  AntarcticCoord payload(AntarcticCoord::WGS84, gps->latitude, gps->longitude, gps->altitude); 
+  AntarcticCoord x = payload.as(AntarcticCoord::CARTESIAN); 
+
+
+#ifdef USE_GEOGRAPHIC_LIB
+  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  gps->latitude,  gps->longitude, gps->heading - phi); 
+  
+  size_t i = 1; 
+  double step = 1000*300;  //start with 300 km step 
+  PayloadParameters ok;
+  int loopCount = 0;
+  while (loopCount<100) //simply hard coded the upper limit of the loop, otherwise it may stuck in the loop forever.
+  {
+    loopCount++;
+    double lat, lon; 
+    gl.Position(i * step, lat, lon); 
+    AntarcticCoord c(AntarcticCoord::WGS84, lat, lon, RampdemReader::SurfaceAboveGeoid(lon,lat,d)); 
+    *p = PayloadParameters(gps, c, m); 
+
+    //printf("%f::%f %f::%f::  %g   %f\n", phi, p->source_phi, theta, p->source_theta, p->payload_el, i * step); 
+
+
+    //we found something that works
+    if (fabs(p->source_phi -phi) < tol && fabs(p->source_theta - theta) < tol && p->apparent_payload_el>= min_el) 
+    {
+      //check for a collision, 
+      //then go to exit point? 
+      if (collision_check_dx && p->checkForCollision( TMath::Min(collision_check_dx,step), 0, &c,   d))
+      {
+        step= TMath::Min(collision_check_dx, step) ; 
+        double dist = AntarcticCoord::surfaceDistance(payload, c); 
+        i = dist/step; 
+        step = dist/i; 
+        continue; 
+      }
+
+      return 1; 
+    }
+
+    //overshot the source, or are over the horizon with too large a step size , we should lower the step size and go back 
+    if (p->source_theta < theta || (p->payload_el < min_el && step > min_dx)) 
+    {
+      step = step / 2; 
+      i = i*2-1; 
+      continue; 
+    }
+    else if (p->payload_el < min_el)  
+    {
+      *p = ok; 
+      return 0; 
+    }
+    else if ( step < min_dx) 
+    {
+      return -1; 
+    }
+
+    //store last ok thing) 
+    if (p->payload_el >= min_el) 
+    {
+      ok = *p; 
+    }
+
+    i++; 
+  }
+
+
+
+ #else
+
+  /* This doesn't work yet 
+  //use great ellipse 
+
+  //Find vector normal to our plane, use 0,0,0 as our point
+  TVector3 d = (x.x,x.y,0); //north pointing vector
+  d.RotateZ(gps->heading); 
+
+  TVector3 n = x.v().Cross(d); 
+
+  // The intersection of the plane and geoid will be an ellipse. We must follow it. 
+  // This sucks. 
+
+  while(true) 
+  {
+    //somehow propagate along ellipse 
+
+    //form the coordinates on the ice surface 
+    AntarcticCoord s(AntarcticCoord::CARTESIAN, x2.X(), x2.Y(), cartmap().z(x2.X(), x2.Y()));
+    TString str;
+    s.asString(&str); 
+    printf("%s\n",str.Data());
+
+    PayloadParameters pp(x,gps->heading, s); 
+
+    printf("%f::%f %f::%f\n", phi, pp.source_phi, theta, pp.source_theta); 
+    if (isnan(s.z)) return 0; 
+
+    if (fabs(pp.source_phi -phi) < tol && fabs(pp.source_theta - theta) < tol) 
+    {
+      return new PayloadParameters(pp); 
+    }
+  }
+  */
+#endif
+
+  return 0; 
 }
 
 

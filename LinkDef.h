@@ -18,6 +18,7 @@
 #pragma link C++ class AntarcticSegmentationScheme;
 #pragma link C++ class AntarcticCoord;
 #pragma link C++ class StereographicGrid;
+#pragma link C++ class PayloadParameters;
 #pragma link C++ class CartesianSurfaceMap;
 #pragma link C++ namespace AntarcticAtmosphere; 
 #pragma link C++ class AntarcticAtmosphere::AtmosphericModel; 
@@ -27,5 +28,12 @@
 
 #pragma link C++ namespace Geoid;
 #pragma link C++ class Geoid::Position-;
+
+#pragma link C++ namespace Refraction;
+#pragma link C++ class Refraction::Model; 
+#pragma link C++ class Refraction::PositionIndependentModel; 
+#pragma link C++ class Refraction::PGFit; 
+#pragma link C++ class Refraction::RaytracerSpherical; 
+#pragma link C++ class Refraction::SphRay; 
 
 #endif
