@@ -1,7 +1,7 @@
 {
-  gSystem->Load("${ANITA_UTIL_INSTALL_DIR}/lib/libRootFftwWrapper.so");
-  gSystem->Load("${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaEvent.so"); 
-  gSystem->Load("${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaCorrelator.so"); 
+  gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libRootFftwWrapper.so");
+  gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libpueoEvent.so"); 
+  gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libAntarcticaRoot.so"); 
 
 
 //  const Int_t NRGBs = 5;
