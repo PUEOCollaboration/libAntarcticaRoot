@@ -1,4 +1,4 @@
-This 'pueo' branch is for side-by-side installation of nicemc/pueoSim with icemc
+This forked version is for PUEO, superceding the previous pueo branch
 
 
 # Models of Antarctica in ROOT
