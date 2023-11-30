@@ -220,10 +220,12 @@ class PayloadParameters
 
     struct PayloadAttitude
     {
-      PayloadAttitude() { ; } 
-      double heading = 0;
-      double pitch = 0; 
-      double roll = 0; 
+      PayloadAttitude( double heading = 0, double pitch = 0, double roll = 0) 
+        : heading(heading), pitch(pitch), roll(roll) 
+      { ; } 
+      double heading;
+      double pitch;
+      double roll;
     }; 
 
     PayloadParameters(const AntarcticCoord & payload_pos,  const AntarcticCoord & source_pos, const PayloadAttitude & attitude = PayloadAttitude(),  const Refraction::Model * refraction =0); 
