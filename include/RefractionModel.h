@@ -7,13 +7,6 @@
 #include "Rtypes.h" 
 #include "TMutex.h" 
 
-namespace pueo 
-{
-  namespace nav
-  {
-    class Attitude; 
-  }
-}
 
 class AntarcticCoord; 
 class TGraph; 
@@ -32,7 +25,7 @@ namespace Refraction
      * with respect to the apparent (true - apparent). 
      * Because I'm using the positive theta going down convention, this should be positive (the real theta is lower than the apparent). 
      * */ 
-    virtual double getElevationCorrection(const pueo::nav::Attitude * pat, const AntarcticCoord * source, double * correction_at_source = 0, double dth = 0.01) const = 0; 
+    virtual double getElevationCorrection(const AntarcticCoord & payload , const AntarcticCoord & source, double * correction_at_source = 0, double dth = 0.01) const = 0; 
 
 
   }; 
@@ -52,7 +45,7 @@ namespace Refraction
   //  TGraph * makeGraph(double hSource, double hPayload, double minEl = 0); 
 
     /* Implemented in terms of the other prototpe */ 
-    virtual double getElevationCorrection(const pueo::nav::Attitude * pat, const AntarcticCoord * source, double * correction_at_source = 0, double dth = 0.01) const ; 
+    virtual double getElevationCorrection(const  AntarcticCoord & payload, const AntarcticCoord & source, double * correction_at_source = 0, double dth = 0.01) const ; 
   }; 
 
 
@@ -63,7 +56,7 @@ namespace Refraction
     public: 
        virtual ~PGFit() { ; } 
 
-      virtual double getElevationCorrection(double el, double hSource, double hPayload, double * correction_at_source = 0)const ; 
+      virtual double getElevationCorrection(double el, double hSource, double hPayload, double * correction_at_source = 0) const ; 
   };
 
 

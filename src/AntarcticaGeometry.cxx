@@ -646,8 +646,8 @@ double AntarcticCoord::surfaceDistance(double lat0 , double lat1, double lon0, d
 
 }
 
-PayloadParameters::PayloadParameters(const pueo::nav::Attitude * gps, const AntarcticCoord & source_pos, const Refraction::Model * refract) 
-  : payload(AntarcticCoord::WGS84, gps->latitude, gps->longitude, gps->altitude), 
+PayloadParameters::PayloadParameters(const AntarcticCoord &  payload_pos, const AntarcticCoord & source_pos, const PayloadAttitude & att, const Refraction::Model * refract) 
+  : payload(payload_pos), 
     source(source_pos)
 {
 
@@ -665,11 +665,8 @@ PayloadParameters::PayloadParameters(const pueo::nav::Attitude * gps, const Anta
   sprime.RotateY(-1 * p.Theta()); 
   sprime[2]=p.Mag()-fabs(sprime.z()); 
 
-  sprime.RotateZ(gps->heading*TMath::DegToRad()); 
-
-  //TODO: check if these axes need modification. Right now pitch and roll are 0 :) 
-  sprime.RotateY(-AnitaStaticAdu5Offsets::pitch *TMath::DegToRad()); 
-  sprime.RotateX(-AnitaStaticAdu5Offsets::roll *TMath::DegToRad()); 
+  //FIXME we ignore pitch and roll right now
+  sprime.RotateZ(att.heading*TMath::DegToRad()); 
 
   source_phi = FFTtools::wrap(sprime.Phi() * TMath::RadToDeg(),360); 
   source_theta = 90 - sprime.Theta() * TMath::RadToDeg(); 
@@ -691,13 +688,14 @@ PayloadParameters::PayloadParameters(const pueo::nav::Attitude * gps, const Anta
   payload_el =  s.Angle(v) * TMath::RadToDeg() - 90; 
   //To get phi, we have to solve the inverse geodesic problem 
   AntarcticCoord swgs84 = source.as(AntarcticCoord::WGS84); 
+  AntarcticCoord pwgs84 = payload.as(AntarcticCoord::WGS84); 
   
-  GeographicLib::Geodesic::WGS84().Inverse(gps->latitude, gps->longitude, swgs84.x, swgs84.y, source_phi, payload_az); 
+  GeographicLib::Geodesic::WGS84().Inverse(pwgs84.x,pwgs84.y, swgs84.x, swgs84.y, source_phi, payload_az); 
   //rotate by 180 to get direction towards payload, and wrap 
   payload_az = FFTtools::wrap(payload_az-180, 360); 
 
 
-  source_phi = FFTtools::wrap(gps->heading - source_phi,360); 
+  source_phi = FFTtools::wrap(att.heading - source_phi,360); 
 #endif
   apparent_source_theta = source_theta; 
   apparent_payload_el = payload_el; 
@@ -706,7 +704,7 @@ PayloadParameters::PayloadParameters(const pueo::nav::Attitude * gps, const Anta
   {
     //We actually want the apparent anagle
     double payload_el_correction = 0;
-    apparent_source_theta -= refract->getElevationCorrection(gps, &source, &payload_el_correction); 
+    apparent_source_theta -= refract->getElevationCorrection(payload, source, &payload_el_correction); 
     apparent_payload_el+= payload_el_correction; 
   }
 
@@ -728,9 +726,12 @@ PayloadParameters::PayloadParameters(const PayloadParameters & other)
   source = other.source; 
 }
 //binary search to get the horizon. 
-double PayloadParameters::getHorizon(double phi, const pueo::nav::Attitude * gps, const Refraction::Model * refractionModel, double tol, RampdemReader::dataSet rampdemData) {
+double PayloadParameters::getHorizon(double phi, const AntarcticCoord & where, const PayloadAttitude & att, const Refraction::Model * refractionModel, double tol, RampdemReader::dataSet rampdemData) {
+
+  AntarcticCoord where_wgs84 = where.as(AntarcticCoord::WGS84); 
+
 #ifdef USE_GEOGRAPHIC_LIB
-  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  gps->latitude,  gps->longitude, gps->heading - phi); 
+  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  where_wgs84.x,  where_wgs84.y, att.heading - phi); 
   double low = 0; //low distance is 0 km
   double high = 1000 * 1000 ;// high distance is 1000km, it means start from the (long, lat) of payload and go 1000km towards the phi direction. as used in the later function gs.Posiiton()
   int count = 0;
@@ -741,7 +742,7 @@ double PayloadParameters::getHorizon(double phi, const pueo::nav::Attitude * gps
     double lat, lon; 
     gl.Position(mid, lat, lon); 
     AntarcticCoord coordinate(AntarcticCoord::WGS84, lat, lon, RampdemReader::SurfaceAboveGeoid(lon,lat,rampdemData)); 
-    PayloadParameters payloadParameter = PayloadParameters(gps, coordinate, refractionModel); 
+    PayloadParameters payloadParameter = PayloadParameters(where, coordinate, att, refractionModel); 
     //if the elevation of payload is nearly 0,  return the horizon theta in payload frame
     if (fabs(payloadParameter.payload_el) < tol or count > 100){
       if (count > 100){
@@ -763,7 +764,8 @@ double PayloadParameters::getHorizon(double phi, const pueo::nav::Attitude * gps
 
 }
 
-int PayloadParameters::findSourceOnContinent(double theta, double phi, const pueo::nav::Attitude * gps, PayloadParameters * p, 
+int PayloadParameters::findSourceOnContinent(double theta, double phi, const AntarcticCoord & payload, PayloadParameters * p, 
+                                             const PayloadAttitude & att, 
                                              const Refraction::Model * m, 
                                              double collision_check_dx,
                                              double min_dx, double tol, double min_el, 
@@ -775,12 +777,12 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const pue
     return 0; 
   }
 
-  AntarcticCoord payload(AntarcticCoord::WGS84, gps->latitude, gps->longitude, gps->altitude); 
   AntarcticCoord x = payload.as(AntarcticCoord::CARTESIAN); 
+  AntarcticCoord wgs84 = payload.as(AntarcticCoord::WGS84); 
 
 
 #ifdef USE_GEOGRAPHIC_LIB
-  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  gps->latitude,  gps->longitude, gps->heading - phi); 
+  GeographicLib::GeodesicLine gl(GeographicLib::Geodesic::WGS84(),  wgs84.x, wgs84.y , att.heading - phi); 
   
   size_t i = 1; 
   double step = 1000*300;  //start with 300 km step 
@@ -792,7 +794,7 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const pue
     double lat, lon; 
     gl.Position(i * step, lat, lon); 
     AntarcticCoord c(AntarcticCoord::WGS84, lat, lon, RampdemReader::SurfaceAboveGeoid(lon,lat,d)); 
-    *p = PayloadParameters(gps, c, m); 
+    *p = PayloadParameters(payload, c, att,  m); 
 
     //printf("%f::%f %f::%f::  %g   %f\n", phi, p->source_phi, theta, p->source_theta, p->payload_el, i * step); 
 

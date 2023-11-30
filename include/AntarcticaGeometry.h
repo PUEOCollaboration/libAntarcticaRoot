@@ -12,7 +12,6 @@
 #include "TH2DAntarctica.h" 
 #include "TVector3.h" 
 #include "RefractionModel.h" 
-#include "pueo/Nav.h" 
 
 
 /** Slightly smarter Antarctic Coordinates.  */ 
@@ -212,10 +211,22 @@ class StereographicGrid : public AntarcticSegmentationScheme
 
 }; 
 
+/* Used to calculate payload things  */ 
+
 class PayloadParameters
 {
   public: 
-    PayloadParameters(const pueo::nav::Attitude * pat,  const AntarcticCoord & source_pos, const Refraction::Model * refraction =0); 
+
+
+    struct PayloadAttitude
+    {
+      PayloadAttitude() { ; } 
+      double heading = 0;
+      double pitch = 0; 
+      double roll = 0; 
+    }; 
+
+    PayloadParameters(const AntarcticCoord & payload_pos,  const AntarcticCoord & source_pos, const PayloadAttitude & attitude = PayloadAttitude(),  const Refraction::Model * refraction =0); 
     PayloadParameters () { ; }
     PayloadParameters(const PayloadParameters & other); 
 
@@ -242,10 +253,11 @@ class PayloadParameters
      * Returns 1 on success, 0 if over horizon (but fills in payload position with the point at the horizon), -1 if doesn't converge to tolerance (but fills in closest) 
      *
      */
-    static double getHorizon(double phi, const pueo::nav::Attitude * gps, const Refraction::Model * refractionModel = 0, double tol = 5e-6, RampdemReader::dataSet rampdemData= RampdemReader::rampdem);
+    static double getHorizon(double phi, const AntarcticCoord & payload_pos, const PayloadAttitude & attitude = PayloadAttitude(), const Refraction::Model * refractionModel = 0, double tol = 5e-6, RampdemReader::dataSet rampdemData= RampdemReader::rampdem);
 
     static int findSourceOnContinent(double theta, double phi,
-                          const pueo::nav::Attitude * gps, PayloadParameters * fillme, 
+                          const AntarcticCoord & payload_pos, PayloadParameters * fillme, 
+                          const PayloadAttitude & attitude = PayloadAttitude(),  //phi-heading is used... 
                           const Refraction::Model * m = 0, 
                           double collision_check_dx = 0, // 0 to not cehck 
                           double min_dx = 5,

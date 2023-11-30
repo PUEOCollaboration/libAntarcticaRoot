@@ -82,12 +82,12 @@ static void init_hists()
 
 
 
-double Refraction::PositionIndependentModel::getElevationCorrection(const pueo::nav::Attitude * pat, const AntarcticCoord * source, double * correction_at_source, double dth)  const
+double Refraction::PositionIndependentModel::getElevationCorrection(const AntarcticCoord & payload, const AntarcticCoord & source, double * correction_at_source, double dth)  const
 {
 
-  PayloadParameters pp(pat,*source); 
+  PayloadParameters pp(payload,source); 
   double H = AntarcticAtmosphere::WGS84toMSL(&pp.payload); 
-  AntarcticCoord s = source->as(AntarcticCoord::WGS84); 
+  AntarcticCoord s = source.as(AntarcticCoord::WGS84); 
   double h = AntarcticAtmosphere::WGS84toMSL(&s); 
 
   double last_corr = 0; 
