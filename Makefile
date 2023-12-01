@@ -1,11 +1,7 @@
-### Makefile that delegates building either to cmake or legacy Makefile 
-### Cmake is default, if you don't want to use CMake, you can do make legacy   
-### ( or move this file and rename Makefile.legacy to Makefile,
-###  or modify the all/clean/install targets below  ) 
-###
+### Convenience Makefile (wrapper around cmake) 
 
 
-.PHONY: all configure clean cleaner install legacy legacy-clean legacy-install cmake-build cmake-clean cmake-install
+.PHONY: all configure clean cleaner install cmake-build cmake-clean cmake-install
 
 all: cmake-build 
 clean: cmake-clean
@@ -17,18 +13,6 @@ doc: legacy-doc
 
 cmake-build: build/Makefile 
 	@+make -C  ./build
-
-legacy-doc: 
-	@make -f Makefile.legacy doc 
-
-legacy: 
-	@make -f Makefile.legacy 
-
-legacy-clean: 
-	@make -f Makefile.legacy clean 
-
-legacy-install: 
-	@make -f Makefile.legacy install 
 
 configure: build/Makefile 
 	@ccmake . build 
