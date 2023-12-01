@@ -28,7 +28,6 @@
 #include <cstring>
 #include "TMath.h"
 #include "BedmapReader.h"
-#include "AnitaGeomTool.h"
 #include "TProfile2D.h"
 #include "Geoid.h"
 #include "TGaxis.h"
