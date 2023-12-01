@@ -20,18 +20,18 @@ using namespace BaseList;
 #endif
 
 
-static void fillBases(std::vector<base> & baseList, int anita) 
+static void fillBases(std::vector<base> & baseList, int pueo) 
 {
 
   TString fname; 
-  fname.Form("%s/share/anitaCalib/baseListA%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), anita); 
+  fname.Form("%s/share/pueoCalib/baseListA%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), pueo); 
 
   TString oldPwd = gDirectory->GetPath();
   TFile fbase(fname.Data()); 
 
   if (!fbase.IsOpen())
   {
-    fprintf(stderr,"Couldn't load base list for ANITA %d. Sorry :(\n", anita); 
+    fprintf(stderr,"Couldn't load base list for PUEO %d. Sorry :(\n", pueo); 
     return;
   }
 
@@ -72,18 +72,18 @@ static void fillBases(std::vector<base> & baseList, int anita)
 }
 
 
-static void fillPaths(std::vector<path> & pathList, int anita) 
+static void fillPaths(std::vector<path> & pathList, int pueo) 
 {
 
   TString fname; 
-  fname.Form("%s/share/anitaCalib/transientListRestrictedA%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), anita); 
+  fname.Form("%s/share/pueoCalib/transientListRestrictedP%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), pueo); 
 
   //see if we have the restricted list
 
   if (access(fname.Data(),R_OK))
   {
-    fprintf(stderr,"Couldn't find restricted list for ANITA %d (%s).  Will try to load unrestricted list. \n", anita, fname.Data()); 
-    fname.Form("%s/share/anitaCalib/transientListUnrestrictedA%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), anita); 
+    fprintf(stderr,"Couldn't find restricted list for PUEO %d (%s).  Will try to load unrestricted list. \n", pueo, fname.Data()); 
+    fname.Form("%s/share/pueoCalib/transientListUnrestrictedA%d.root", getenv("PUEO_UTIL_INSTALL_DIR"), pueo); 
   }
   TString oldPwd = gDirectory->GetPath();
 
@@ -91,7 +91,7 @@ static void fillPaths(std::vector<path> & pathList, int anita)
 
   if (!fpath.IsOpen())
   {
-    fprintf(stderr,"Couldn't find unrestricted list for ANITA %d (%s).  Sorry :( \n", anita,  fname.Data()); 
+    fprintf(stderr,"Couldn't find unrestricted list for PUEO %d (%s).  Sorry :( \n", pueo,  fname.Data()); 
     return; 
   }
 
@@ -175,9 +175,9 @@ static std::vector<path> no_paths;
 
 struct baselist_impl 
 {
-  baselist_impl(int anita) 
+  baselist_impl(int pueo) 
   {
-    fillBases(bases, anita); 
+    fillBases(bases, pueo); 
   }
   std::vector<base> bases; 
 
@@ -185,9 +185,9 @@ struct baselist_impl
 
 struct pathlist_impl 
 {
-  pathlist_impl(int anita) 
+  pathlist_impl(int pueo) 
   {
-    fillPaths(paths, anita); 
+    fillPaths(paths, pueo); 
   }
   std::vector<path> paths; 
 
@@ -299,7 +299,7 @@ AntarcticCoord BaseList::path::getPosition(unsigned t) const {
   //  The unit auxiliary sphere is assuming (x / a)^2 + (y / a)^2 + (z / b)^2 = 1.
   //  See (https://www.uwgb.edu/dutchs/structge/sphproj.htm) and (http://mathworld.wolfram.com/StereographicProjection.html) for details.
   TVector3 g = low_frac * std::abs(1 / cu.z) * cu.v() + (1 - low_frac) * std::abs(1 / cl.z) * cl.v();
-  g(0) *= Geoid::GEOID_MIN / Geoid::GEOID_MAX;  //  GEOID_MIN and GEOID_MAX defined in "AnitaGeomTool.h".
+  g(0) *= Geoid::GEOID_MIN / Geoid::GEOID_MAX;  
   g(1) *= Geoid::GEOID_MIN / Geoid::GEOID_MAX;
 
   //  Now to invert the transform, back to Cartesian ((x, y, z) = (1 / R) * (a * X, a * Y, b * Z), R = sqrt(X^2 + Y^2 + Z^2)).
