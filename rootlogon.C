@@ -1,6 +1,5 @@
 {
   gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libRootFftwWrapper.so");
-  gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libpueoEvent.so"); 
   gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib/libAntarcticaRoot.so"); 
 
 
