@@ -2,7 +2,6 @@
 #include "AntarcticAtmosphere.h" 
 #include "AntarcticaGeometry.h" 
 #include "TEllipse.h" 
-#include "pueo/Nav.h" 
 #include "TH2.h" 
 #include "TGraph.h" 
 
