@@ -409,7 +409,7 @@ namespace Geoid {
 
 
   inline void Position::copyState(const Position& other){
-//    SetXYZ(other.X(), other.Y(), other.Z());
+    SetXYZ(other.X(), other.Y(), other.Z());// maybe redundant, but oh well
     longitude = other.longitude;
     latitude = other.latitude;
 
