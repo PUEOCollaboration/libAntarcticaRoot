@@ -896,5 +896,77 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const Ant
 
   return 0; 
 }
+static const CartesianSurfaceMap & cartmap ( RampdemReader::dataSet d ) 
+{
+  if (d == RampdemReader::surface) 
+  {
+    static CartesianSurfaceMap sm(1000, d); 
+    return sm; 
+  }
+
+  static CartesianSurfaceMap sm; 
+  return sm; 
+}
 
 
+
+bool PayloadParameters::checkForCollision(double dx, AntarcticCoord * w, AntarcticCoord * w_exit,  RampdemReader::dataSet d, double grace, bool reverse) const
+{
+
+  AntarcticCoord x = (reverse ? payload: source).as(AntarcticCoord::CARTESIAN); 
+  TVector3 v = (reverse ? -1 : 1) * (payload.v() - source.v()).Unit() * dx;  
+
+
+  while(true)
+  {
+    x.to(AntarcticCoord::CARTESIAN); 
+    x.x+= v.x();
+    x.y+= v.y();
+    x.z+= v.z(); 
+ 
+    double height_above_surface = cartmap(d).metersAboveIce(x.x, x.y, x.z);
+
+    if ( (!reverse && height_above_surface> 5000) || (reverse && (x.v() - source.v()).Mag2() < dx*dx))
+      break; 
+
+    if (height_above_surface  + grace < 0 )
+    {
+//      printf("BOOM! alt(%g,%g,%g)= %g\n", x.x, x.y, x.z, cartmap().surface(x.x, x.y)); 
+      if (w) 
+      {
+        *w  = x; 
+      }
+
+      //figure out where no longer a collision
+      if ( w_exit) 
+      {
+        while (true) 
+        {
+          x.x+= v.x();
+          x.y+= v.y();
+          x.z+= v.z(); 
+          height_above_surface = cartmap(d).metersAboveIce(x.x, x.y, x.z);
+
+          if (height_above_surface + grace >=0 ) 
+          {
+            *w_exit = x; 
+            break; 
+          }
+          else if ( reverse && (x.v() - source.v()).Mag2() < dx*dx)
+          {
+            *w_exit = source; 
+            break; 
+          }
+
+        }
+      }
+
+      return true; 
+    }
+  }
+
+
+  return false; 
+
+
+}
