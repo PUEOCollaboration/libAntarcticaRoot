@@ -231,6 +231,7 @@ class PayloadParameters
     PayloadParameters(const AntarcticCoord & payload_pos,  const AntarcticCoord & source_pos, const PayloadAttitude & attitude = PayloadAttitude(),  const Refraction::Model * refraction =0); 
     PayloadParameters () { ; }
     PayloadParameters(const PayloadParameters & other); 
+    PayloadParameters & operator=(const PayloadParameters & other); 
 
     double source_phi;  //the phi of the source, in payload coordinates (degrees). 
     double source_theta; //the theta of the source, in payload coordinates (degrees) such that theta > 0 is coming from below

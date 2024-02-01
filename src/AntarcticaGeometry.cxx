@@ -725,6 +725,19 @@ PayloadParameters::PayloadParameters(const PayloadParameters & other)
   payload = other.payload; 
   source = other.source; 
 }
+
+PayloadParameters & PayloadParameters::operator=(const PayloadParameters & other) 
+{
+  this->source_phi = other.source_phi; 
+  this->source_theta = other.source_theta; 
+  this->payload_el = other.payload_el; 
+  this->payload_az = other.payload_az; 
+  this->distance = other.distance; 
+  this->payload = other.payload; 
+  this->source = other.source; 
+  return *this; 
+}
+
 //binary search to get the horizon. 
 double PayloadParameters::getHorizon(double phi, const AntarcticCoord & where, const PayloadAttitude & att, const Refraction::Model * refractionModel, double tol, RampdemReader::dataSet rampdemData) {
 
