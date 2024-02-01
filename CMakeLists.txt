@@ -117,7 +117,7 @@ install (DIRECTORY data/ DESTINATION ${UTIL_SHARE_DIR}/anitaCalib)
 message (" Adding new build type")
 
 set(CMAKE_CXX_FLAGS_DEFAULT
-  "-Os -g -Wall -march=native"
+  "-Os -g -Wall -Wextra -march=native"
   CACHE STRING "c++ Flags used during default eventReaderRoot builds"
   FORCE )
 
