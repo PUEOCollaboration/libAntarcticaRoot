@@ -121,6 +121,11 @@ namespace Geoid {
     {
       copyState(p);
     }
+    Position & operator=(const Position & p) 
+    {
+      copyState(p); 
+      return *this; 
+    }
     virtual ~Position(){;}
 
     template <class T> Position(const T& t);
