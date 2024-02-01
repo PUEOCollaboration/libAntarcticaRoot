@@ -116,7 +116,9 @@ namespace Geoid {
 
     Position(Double_t x, Double_t y, Double_t z) : TVector3(x, y, z) {};
     Position(const TVector3& v) : TVector3(v) {};
-    Position(const Position& p){
+    Position(const Position& p)
+      : TVector3(p) 
+    {
       copyState(p);
     }
     virtual ~Position(){;}
@@ -407,7 +409,7 @@ namespace Geoid {
 
 
   inline void Position::copyState(const Position& other){
-    SetXYZ(other.X(), other.Y(), other.Z());
+//    SetXYZ(other.X(), other.Y(), other.Z());
     longitude = other.longitude;
     latitude = other.latitude;
 
