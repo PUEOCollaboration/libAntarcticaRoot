@@ -103,8 +103,8 @@ double Refraction::PositionIndependentModel::getElevationCorrection(const Antarc
       last_corr = corr; 
       last_at_source = at_source; 
 
-      if (theta + corr > pp.source_theta); 
-      break; 
+      if (theta + corr > pp.source_theta) 
+        break; 
 
     }
     else break; 
