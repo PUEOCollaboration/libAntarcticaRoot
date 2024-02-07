@@ -34,15 +34,15 @@
 
 using namespace std;
 
- struct rampData{
+struct rampData{
   Double_t lat;
   Double_t longi;
   Double_t el1;
   Double_t el2;
- };
+};
 
-bool comparitor(rampData const& first, rampData const& second){
-	return first.lat < second.lat;
+static bool comparitor(rampData const& first, rampData const& second){
+        return first.lat < second.lat;
 }
 
 vector<rampData> rampDemVec;
@@ -183,13 +183,13 @@ else {
 void BedmapReader::ReadSurfaceElevation(bool icethicknessMode) {
   //Reads the BEDMAP data on the elevation of the surface beneath the ice.  If there is water beneath the ice, the ground elevation is given the value 0.  Assumes the file is in directory "data".  Origianl code by Ryan Nichol.
   char calibDir[FILENAME_MAX];
-  char *calibEnv=getenv("ANITA_CALIB_DIR");
+  char *calibEnv=getenv("PUEO_CALIB_DIR");
   if(!calibEnv) {
      char *utilEnv=getenv("PUEO_UTIL_INSTALL_DIR");
      if(!utilEnv)
-	sprintf(calibDir,"calib");
+        sprintf(calibDir,"calib");
      else
-	sprintf(calibDir,"%s/share/anitaCalib",utilEnv);
+        sprintf(calibDir,"%s/share/pueoCalib",utilEnv);
   }
   else {
     strncpy(calibDir,calibEnv,FILENAME_MAX);
@@ -197,8 +197,7 @@ void BedmapReader::ReadSurfaceElevation(bool icethicknessMode) {
   char surfaceFile[FILENAME_MAX];
   if(!icethicknessMode)
     sprintf(surfaceFile,"%s/surfaceElevation.asc",calibDir);
-  else 
-    sprintf(surfaceFile,"/home/mottram/work/eventCorrelator/data/iceThickness.asc");
+
   ifstream SurfaceElevationFile(surfaceFile);
   if(!SurfaceElevationFile) {
     std::cerr << "Couldn't open: " << surfaceFile << std::endl;
@@ -218,8 +217,8 @@ void BedmapReader::ReadSurfaceElevation(bool icethicknessMode) {
   Int_t temp1,temp2,temp3,temp4,temp5,temp6;
   
   SurfaceElevationFile >> tempBuf1 >> temp1 >> tempBuf2 >> temp2 
-		>> tempBuf3 >> temp3 >> tempBuf4 >> temp4 
-		>> tempBuf5 >> temp5 >> tempBuf6 >> temp6;
+                >> tempBuf3 >> temp3 >> tempBuf4 >> temp4 
+                >> tempBuf5 >> temp5 >> tempBuf6 >> temp6;
   
   if(tempBuf1 == string("ncols")) {
     nCols_surface=temp1;
@@ -256,7 +255,7 @@ void BedmapReader::ReadSurfaceElevation(bool icethicknessMode) {
 
       
       // if(theValue==NODATA)
-      //	theValue=0; //Set elevation to 0 where we have no data.
+      //        theValue=0; //Set elevation to 0 where we have no data.
 
 //       surface_elevation[colNum][rowNum] = Double_t(theValue);
       surface_elevation[colNum][rowNum] = theValue;
@@ -275,24 +274,24 @@ void BedmapReader::ReadSurfaceElevation(bool icethicknessMode) {
 void BedmapReader::ReadSurfaceElevationRampDem() {
   //Reads the BEDMAP data on the elevation of the surface beneath the ice.  If there is water beneath the ice, the ground elevation is given the value 0.  Assumes the file is in directory "data".  Origianl code by Ryan Nichol.
   char calibDir[FILENAME_MAX];
-  char *calibEnv=getenv("ANITA_CALIB_DIR");
+  char *calibEnv=getenv("PUEO_CALIB_DIR");
   if(!calibEnv) {
      char *utilEnv=getenv("PUEO_UTIL_INSTALL_DIR");
      if(!utilEnv)
-	sprintf(calibDir,"calib");
+        sprintf(calibDir,"calib");
      else
-	sprintf(calibDir,"%s/share/anitaCalib",utilEnv);
+        sprintf(calibDir,"%s/share/pueoCalib",utilEnv);
   }
   else {
     strncpy(calibDir,calibEnv,FILENAME_MAX);
   }
+
   char surfaceFile[FILENAME_MAX];
-  //sprintf(surfaceFile,"%s/ramp1kmdem_wgsosu_v2.txt",calibDir);
-  sprintf(surfaceFile,"/unix/anita1/rampDemData/ramp1kmdem_wgsosu_v2.txt");
+  sprintf(surfaceFile,"%s/ramp1kmdem_wgsosu_v2.txt",calibDir);
   ifstream SurfaceElevationFile(surfaceFile);
   if(!SurfaceElevationFile) {
     std::cerr << "Couldn't open: " << surfaceFile << std::endl;
-    exit(1);
+    return; 
   }
 
   std::cout<<"Reading in RampDEM data on surface elevation.\n";
@@ -307,17 +306,17 @@ void BedmapReader::ReadSurfaceElevationRampDem() {
   rampData dataIn;
 
   while (!SurfaceElevationFile.eof()){
-	SurfaceElevationFile >> latIn;
-	SurfaceElevationFile >> longIn;
-       	SurfaceElevationFile >> el1In;
-       	SurfaceElevationFile >> el2In;
+        SurfaceElevationFile >> latIn;
+        SurfaceElevationFile >> longIn;
+               SurfaceElevationFile >> el1In;
+               SurfaceElevationFile >> el2In;
 
-	dataIn.lat = latIn;
-	dataIn.longi = longIn;
-	dataIn.el1 = el1In;
-	dataIn.el2 = el2In;
+        dataIn.lat = latIn;
+        dataIn.longi = longIn;
+        dataIn.el1 = el1In;
+        dataIn.el2 = el2In;
 
-	rampDemVec.push_back(dataIn);
+        rampDemVec.push_back(dataIn);
 
        }
 
@@ -463,19 +462,19 @@ TProfile2D *BedmapReader::bedmapMap(int coarseness_factor, int set_log_scale,UIn
     if(debug){
       if(row_index%(surface_elevation[0].size()/100)==0) std::cerr << "*";
     }
-	
+        
     for (unsigned int column_index=0; column_index < surface_elevation.size(); ++column_index)
       {
 
-	if(surface_elevation[column_index][row_index]<-9000)//this is a silly scale for map drawing
-	  surface_elevation[column_index][row_index]=-500;
+        if(surface_elevation[column_index][row_index]<-9000)//this is a silly scale for map drawing
+          surface_elevation[column_index][row_index]=-500;
 
-	if (set_log_scale == 1)
-	  theHist->Fill( xLowerLeft_surface + double(column_index)*cellSize, -(yLowerLeft_surface + double(row_index)*cellSize), log10(surface_elevation[column_index][row_index]+1000) ); //The "+1000" makes sure everything is positive.
-// 	  theHist->Fill( x_min + double(column_index)*cell_size, -(y_min + double(row_index)*cell_size), log10(surface_elevation[column_index][row_index]+1000) ); //The "+1000" makes sure everything is positive.
-	else
-	  theHist->Fill( xLowerLeft_surface + double(column_index)*cellSize, -(yLowerLeft_surface + double(row_index)*cellSize), surface_elevation[column_index][row_index] );
-// 	  theHist->Fill( x_min + double(column_index)*cell_size, -(y_min + double(row_index)*cell_size), surface_elevation[column_index][row_index] );
+        if (set_log_scale == 1)
+          theHist->Fill( xLowerLeft_surface + double(column_index)*cellSize, -(yLowerLeft_surface + double(row_index)*cellSize), log10(surface_elevation[column_index][row_index]+1000) ); //The "+1000" makes sure everything is positive.
+//           theHist->Fill( x_min + double(column_index)*cell_size, -(y_min + double(row_index)*cell_size), log10(surface_elevation[column_index][row_index]+1000) ); //The "+1000" makes sure everything is positive.
+        else
+          theHist->Fill( xLowerLeft_surface + double(column_index)*cellSize, -(yLowerLeft_surface + double(row_index)*cellSize), surface_elevation[column_index][row_index] );
+//           theHist->Fill( x_min + double(column_index)*cell_size, -(y_min + double(row_index)*cell_size), surface_elevation[column_index][row_index] );
       } //end for (loop over surface elevation vector)
   }
   if(debug)
