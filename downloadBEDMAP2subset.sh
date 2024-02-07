@@ -4,12 +4,12 @@
 # Because we only need a subset of the data, and the compressed data set is fairly large and only used in plotting,
 # this installation is optional and not forced by anitaBuildTool.
 
-# You can install the files manually by making sure the files, e.g. bedmap_bed.flt end up in $ANITA_UTIL_INSTALL_DIR/share/anitaCalib/bedmap2_bin/
+# You can install the files manually by making sure the files, e.g. bedmap_bed.flt end up in $PUEO_UTIL_INSTALL_DIR/share/anitaCalib/bedmap2_bin/
 # This is the recommended way of getting them on the ice... let's hope someone brought them with them!
 
-calibDir=$ANITA_UTIL_INSTALL_DIR/share/anitaCalib
-if [[ -z "${ANITA_UTIL_INSTALL_DIR}" ]]; then
-    echo "Please set ANITA_UTIL_INSTALL_DIR and try again"
+calibDir=$PUEO_UTIL_INSTALL_DIR/share/pueoCalib
+if [[ -z "${PUEO_UTIL_INSTALL_DIR}" ]]; then
+    echo "Please set PUEO_UTIL_INSTALL_DIR and try again"
     exit 1;
 else
 
@@ -38,22 +38,15 @@ fi
 # We want the binary data
 whichData=bedmap2_bin
 repo=subsetOfBedmap2Data
-releaseNum=1.0
-releaseTag=v$releaseNum
 
-curl -L https://github.com/anitaNeutrino/$repo/archive/$releaseTag.tar.gz > $calibDir/$repo-$releaseTag.tar.gz
+curl -L https://github.com/anitaNeutrino/${repo}/raw/master/${whichData}.tar.gz2 > $calibDir/${whichData}.tar.gz2
 sleep 3; # Doesn't like trying to unzip straight away
 
 # mv to calibDir to extract
 cd $calibDir;
 
-# gzipped tarball of a gzipped tarball...
-tar -xvf $repo-$releaseTag.tar.gz
-tar -xvf $repo-$releaseNum/$whichData.tar.gz2
+tar -xvf $whichData.tar.gz2 && rm $whichData.tar.gz2 
 
-# Tidy up
-rm $repo-$releaseTag.tar.gz
-rm -r $repo-$releaseNum
 
 # return to initial directory
 cd -
