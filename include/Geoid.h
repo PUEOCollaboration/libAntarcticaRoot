@@ -306,24 +306,24 @@ namespace Geoid {
   }
 
 
-  inline void Position::SetEasting(double easting) {
+  inline void Position::SetEasting(double east) {
     northing = Northing();
-    easting = easting;
+    easting = east;
     updateLonLatFromEastingNorthing(false);
   }
-  inline void Position::SetNorthing(double northing) {    
+  inline void Position::SetNorthing(double north) {    
     easting = Easting();
-    northing = northing;
+    northing = north;
     updateLonLatFromEastingNorthing(false);
   }
-  inline void Position::SetEastingNorthing(double easting, double northing) {
-    easting = easting;
-    northing = northing;
+  inline void Position::SetEastingNorthing(double east, double north) {
+    easting = east;
+    northing = north;
     updateLonLatFromEastingNorthing(true);
   }
-  inline void Position::SetEastingNorthingAlt(double easting, double northing, double alt) {
-    easting = easting;
-    northing = northing;
+  inline void Position::SetEastingNorthingAlt(double east, double north, double alt) {
+    easting = east;
+    northing = north;
     altitude = alt;
     updateLonLatFromEastingNorthing(false);
   }
