@@ -98,7 +98,7 @@ double Refraction::PositionIndependentModel::getElevationCorrection(const Antarc
     double at_source; 
     double corr = getElevationCorrection(theta, h,H, &at_source); 
 
-    if (!isnan(corr))
+    if (!std::isnan(corr))
     {
       last_corr = corr; 
       last_at_source = at_source; 
