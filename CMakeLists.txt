@@ -60,6 +60,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
 # TODO: compiled just fine without linking
 # target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
+# target_link_options(${PROJECT_NAME} PRIVATE "-g")
 
 set(DICTNAME G__${PROJECT_NAME})
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
