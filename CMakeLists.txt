@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.19.0)
 project(AntarcticaRoot VERSION 1.0.0)
 
+file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+
     # set(UTIL_LIB_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/lib)
     # set(UTIL_INC_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/include)
     # set(UTIL_BIN_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/bin)
@@ -8,65 +11,34 @@ project(AntarcticaRoot VERSION 1.0.0)
     # set(LD_UTIL $ENV{PUEO_UTIL_INSTALL_DIR}/lib)
     # set(INC_UTIL $ENV{PUEO_UTIL_INSTALL_DIR}/include)
 
+                                  # TODO: compiled just fine without these
+find_package(ROOT CONFIG REQUIRED)# COMPONENTS MathMore MathCore RIO Hist Tree Net Minuit Gui HistPainter)
+# find_package(FFTW REQUIRED)
+# find_package(ZLIB REQUIRED)
 
-#---Locate the ROOT package and defines a number of variables (e.g. ROOT_INCLUDE_DIRS)
-find_package(ROOT REQUIRED COMPONENTS MathMore MathCore RIO Hist Tree Net
-  Minuit Gui HistPainter)
-find_package(FFTW REQUIRED)
-find_package(ZLIB REQUIRED)
+#================================================================================================
+#                                       BUILDING
+#================================================================================================
 
+target_include_directories(${PROJECT_NAME}
+  PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+          $<INSTALL_INTERFACE:include>
+)
 
-if(TARGET RootFftwWrapper)
-  message("RootFftwWrapper is a target")
-else()
- link_directories(${UTIL_LIB_DIR})
-endif()
-
-
-
-
-#---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
-
-message("ROOT_VERSION is set to ${ROOT_VERSION}")
-if( ${ROOT_VERSION} VERSION_GREATER "5.99/99")
-    message("Using ROOT_VERSION 6")
-    include(${ROOT_USE_FILE})
-else()
-#    include(RootNewMacros)
-     add_definitions(${ROOT_DEFINITIONS})
-endif()
-
-message("ROOT_INCLUDE_DIRS is set to ${ROOT_INCLUDE_DIRS}")
-
-# Transform ROOT_CXX_FLAGS into a list of individual flags
+# Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
 separate_arguments(ROOT_CXX_FLAGS_LIST UNIX_COMMAND ${ROOT_CXX_FLAGS})
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
-include_directories(${PROJECT_SOURCE_DIR} ${ROOT_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include ${FFTW_INCLUDES} ${ZLIB_INCLUDES} ${UTIL_INC_DIR})
-
-file(GLOB HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/include/*.hh)
-
-file(GLOB_RECURSE SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/*.cxx ${PROJECT_SOURCE_DIR}/src/*.cc)
+# TODO: compiled just fine without linking
+# target_link_libraries(${PROJECT_NAME} ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
 
 set(DICTNAME G__${PROJECT_NAME})
+file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
 
-ROOT_GENERATE_DICTIONARY(${DICTNAME} ${HEADER_FILES} LINKDEF LinkDef.h)
-
-#---Create a shared library with geneated dictionary
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${DICTNAME}.cxx)
-#target_link_libraries(${PROJECT_NAME} ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${ZLIB_LIBRARIES} ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
-
-if( ${ROOT_VERSION} VERSION_GREATER "5.99.99")
-    add_custom_target(${DICTNAME}.pcm DEPENDS ${DICTNAME})
-endif()
-
-
-message("UTIL_INC_DIR is set to ${UTIL_INC_DIR}")
-message("DICTNAME is set to ${DICTNAME}" )
-message("PROJECT_BINARY_DIR is set to ${PROJECT_BINARY_DIR}")
-
-
+#================================================================================================
+#                                       INSTALLING
+#================================================================================================
 
 install (FILES ${HEADER_FILES} DESTINATION ${UTIL_INC_DIR})
 install (TARGETS ${PROJECT_NAME}
