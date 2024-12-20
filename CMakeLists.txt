@@ -9,22 +9,57 @@ find_package(ROOT CONFIG REQUIRED)# COMPONENTS MathMore MathCore RIO Hist Tree N
 # find_package(ZLIB REQUIRED)
 
 #================================================================================================
+#                                       OPTIONS
+#================================================================================================
+
+option(FORCE_OLD_GPP_ABI
+  "Force old g++ ABI; this might be necessary if using new g++ with ROOT compiled with older g++ or other similar situations"
+  OFF)
+
+if(FORCE_OLD_GPP_ABI)
+  target_compile_options(${PROJECT_NAME} PRIVATE -D_GLIBCXX_USE_CXX11_ABI=0)
+endif()
+
+option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" OFF)
+# note: For Fedora Linux users, run `dnf install GeographicLib-devel` first
+if(USE_GEOGRAPHIC_LIB)
+  find_package(GeographicLib REQUIRED)
+  target_compile_options(${PROJECT_NAME} PRIVATE -DUSE_GEOGRAPHIC_LIB)
+  target_link_libraries (${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
+endif()
+
+option(USE_HEALPIX
+  "Enable Healpix Segmentation, requires healpix to be installed on your system in a place that can be found easily."
+  OFF)
+# TODO: this is broken af, the module can't seem to find healpix, even after dnf install healpix-devel and/or chealpix-devel
+if(USE_HEALPIX)
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/module")
+  find_package(HealPix REQUIRED)
+
+  target_compile_options(${PROJECT_NAME} PRIVATE -DUSE_HEALPIX)
+  # Are these really necessary?!?? 
+  target_link_libraries (${PROJECT_NAME} PRIVATE healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
+endif()
+
+
+#================================================================================================
 #                                       BUILDING
 #================================================================================================
 
 target_include_directories(${PROJECT_NAME}
-  PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<INSTALL_INTERFACE:include>
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>
 )
 
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
-separate_arguments(ROOT_CXX_FLAGS_LIST 
+separate_arguments(
+  ROOT_CXX_FLAGS_LIST 
   UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native -DUSE_FFT_TOOLS"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
 # TODO: compiled just fine without linking
-# target_link_libraries(${PROJECT_NAME} ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
+# target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
 
 set(DICTNAME G__${PROJECT_NAME})
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
@@ -71,31 +106,3 @@ install(EXPORT ${PROJECT_NAME}Targets
 
 # installing datafiles (ie. stuff in data/)
 install(DIRECTORY data/ DESTINATION share/anitaCalib)
-
-
-
-
-option ( FORCE_OLD_GPP_ABI " Force old g++ ABI; this might be necessary if using new g++ with ROOT compiled with older g++ or other similar situations" OFF )
-if (FORCE_OLD_GPP_ABI)
-  add_definitions( -D_GLIBCXX_USE_CXX11_ABI=0 )
-endif()
-
-option ( USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" ) 
-if (USE_GEOGRAPHIC_LIB)
-  add_definitions  (-DUSE_GEOGRAPHIC_LIB )
-  find_package(GeographicLib REQUIRED) 
-  target_link_libraries (${PROJECT_NAME} ${GeographicLib_LIBRARIES} )
-endif()
-
-
-option (USE_HEALPIX "Enable Healpix Segmentation, requires healpix to be
-installed on your system in a place that can be found easily." OFF)
-
-if (USE_HEALPIX)
-  add_definitions  (-DUSE_HEALPIX )
-  # Are these really necessary?!?? 
-  target_link_libraries (${PROJECT_NAME} healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
-endif()
-
-
-
