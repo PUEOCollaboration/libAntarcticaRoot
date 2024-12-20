@@ -3,17 +3,9 @@ project(AntarcticaRoot VERSION 1.0.0)
 
 file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
-
-    # set(UTIL_LIB_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/lib)
-    # set(UTIL_INC_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/include)
-    # set(UTIL_BIN_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/bin)
-    # set(UTIL_SHARE_DIR $ENV{PUEO_UTIL_INSTALL_DIR}/share)
-    # set(LD_UTIL $ENV{PUEO_UTIL_INSTALL_DIR}/lib)
-    # set(INC_UTIL $ENV{PUEO_UTIL_INSTALL_DIR}/include)
-
-                                  # TODO: compiled just fine without these
+                                  
 find_package(ROOT CONFIG REQUIRED)# COMPONENTS MathMore MathCore RIO Hist Tree Net Minuit Gui HistPainter)
-# find_package(FFTW REQUIRED)
+# find_package(FFTW REQUIRED)     # TODO: compiled just fine without these
 # find_package(ZLIB REQUIRED)
 
 #================================================================================================
@@ -40,18 +32,43 @@ root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINK
 #                                       INSTALLING
 #================================================================================================
 
-install (FILES ${HEADER_FILES} DESTINATION ${UTIL_INC_DIR})
-install (TARGETS ${PROJECT_NAME}
-	ARCHIVE DESTINATION ${UTIL_LIB_DIR}
-	LIBRARY DESTINATION ${UTIL_LIB_DIR}
-	RUNTIME DESTINATION ${UTIL_BIN_DIR})
-      #Only needed for ROOT6
-if( ${ROOT_VERSION} VERSION_GREATER "5.99.99")
-  install (FILES ${PROJECT_BINARY_DIR}/${DICTNAME}_rdict.pcm DESTINATION ${UTIL_LIB_DIR})
-#  install (FILES ${PROJECT_BINARY_DIR}/lib${PROJECT_NAME}.rootmap DESTINATION ${UTIL_LIB_DIR})
-endif()
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 
-install (DIRECTORY data/ DESTINATION ${UTIL_SHARE_DIR}/anitaCalib)
+# Config files and such
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Generating RootFftwWrapperConfig.cmake
+configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
+)
+# Generating RootFftwWrapperConfigVersion.cmake
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+# Installing these two config files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION "lib/cmake/${PROJECT_NAME}"
+)
+
+# installing the libraries
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION lib)
+# TODO: not sure if pcm files should be installed, or how (https://root-forum.cern.ch/t/cmake-not-installing-pcm-and-rootmap/50997)
+
+# installing the target file
+install(EXPORT ${PROJECT_NAME}Targets
+    NAMESPACE AntarcticaRoot::
+    FILE ${PROJECT_NAME}Targets.cmake
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+# installing datafiles (ie. stuff in data/)
+install(DIRECTORY data/ DESTINATION share/anitaCalib)
 
 #################################################################################3
 ### The default build configuration is INSANE. No optimization? What is this 1971?
