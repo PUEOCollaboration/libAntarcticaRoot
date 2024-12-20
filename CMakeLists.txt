@@ -4,9 +4,8 @@ project(AntarcticaRoot VERSION 1.0.0)
 file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
                                   
+find_package(RootFftwWrapper CONFIG REQUIRED)
 find_package(ROOT CONFIG REQUIRED)# COMPONENTS MathMore MathCore RIO Hist Tree Net Minuit Gui HistPainter)
-# find_package(FFTW REQUIRED)     # TODO: compiled just fine without these
-# find_package(ZLIB REQUIRED)
 
 #================================================================================================
 #                                       OPTIONS
@@ -58,9 +57,9 @@ separate_arguments(
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
-# TODO: compiled just fine without linking
-# target_link_libraries(${PROJECT_NAME} PRIVATE ${ZLIB_LIBRARIES} RootFftwWrapper ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
-# target_link_options(${PROJECT_NAME} PRIVATE "-g")
+# linking RootFftwWrapper to get its header files
+target_link_libraries(${PROJECT_NAME} PRIVATE RootFftwWrapper)# ${ZLIB_LIBRARIES} ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
+target_link_options(${PROJECT_NAME} PRIVATE "-g")             # TODO: compiled just fine without linking these
 
 set(DICTNAME G__${PROJECT_NAME})
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
