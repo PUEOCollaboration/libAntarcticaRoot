@@ -99,7 +99,6 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATIO
 
 # installing the target file
 install(EXPORT ${PROJECT_NAME}Targets
-    NAMESPACE AntarcticaRoot::
     FILE ${PROJECT_NAME}Targets.cmake
     DESTINATION lib/cmake/${PROJECT_NAME}
 )
