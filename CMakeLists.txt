@@ -18,7 +18,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
-separate_arguments(ROOT_CXX_FLAGS_LIST UNIX_COMMAND ${ROOT_CXX_FLAGS})
+separate_arguments(ROOT_CXX_FLAGS_LIST UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native")
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
 # TODO: compiled just fine without linking
@@ -70,39 +70,6 @@ install(EXPORT ${PROJECT_NAME}Targets
 # installing datafiles (ie. stuff in data/)
 install(DIRECTORY data/ DESTINATION share/anitaCalib)
 
-#################################################################################3
-### The default build configuration is INSANE. No optimization? What is this 1971?
-
-message (" Adding new build type")
-
-set(CMAKE_CXX_FLAGS_DEFAULT
-  "-Os -g -Wall -Wextra -march=native"
-  CACHE STRING "c++ Flags used during default eventReaderRoot builds"
-  FORCE )
-
-set(CMAKE_C_FLAGS_DEFAULT
-  "-Os -g -Wall -march=native"
-  CACHE STRING "c Flags used during default eventReaderRoot builds"
-  FORCE )
-
-set(CMAKE_EXE_LINKER_FLAGS_DEFAULT
-  "-g"
-  CACHE STRING "ld Flags used during default eventReaderRoot builds"
-  FORCE )
-
-set(CMAKE_SHARED_LINKER_FLAGS_DEFAULT
-  "-g"
-  CACHE STRING "ld Flags used during default eventReaderRoot builds"
-  FORCE )
-
-
-mark_as_advanced ( CMAKE_CXX_FLAGS_DEFAULT CMAKE_C_FLAGS_DEFAULT CMAKE_EXE_LINKER_FLAGS_DEFAULT CMAKE_SHARED_LINKER_FLAGS_DEFAULT)
-
-if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE Default
-    CACHE STRING "Choose tye type of build: None Debug Release RelWithDebInfo MinSizeRel Default"
-    FORCE )
-endif()
 
 
 add_definitions("-DUSE_FFT_TOOLS")
