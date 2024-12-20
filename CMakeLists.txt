@@ -18,7 +18,9 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
-separate_arguments(ROOT_CXX_FLAGS_LIST UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native")
+separate_arguments(ROOT_CXX_FLAGS_LIST 
+  UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native -DUSE_FFT_TOOLS"
+)
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 
 # TODO: compiled just fine without linking
@@ -72,7 +74,6 @@ install(DIRECTORY data/ DESTINATION share/anitaCalib)
 
 
 
-add_definitions("-DUSE_FFT_TOOLS")
 
 option ( FORCE_OLD_GPP_ABI " Force old g++ ABI; this might be necessary if using new g++ with ROOT compiled with older g++ or other similar situations" OFF )
 if (FORCE_OLD_GPP_ABI)
