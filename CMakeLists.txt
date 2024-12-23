@@ -23,19 +23,19 @@ option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" OFF)
 # note: For Fedora Linux users, run `dnf install GeographicLib-devel` first
 if(USE_GEOGRAPHIC_LIB)
   find_package(GeographicLib REQUIRED)
-  target_compile_options(${PROJECT_NAME} PRIVATE -DUSE_GEOGRAPHIC_LIB)
-  target_link_libraries (${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GEOGRAPHIC_LIB)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
 option(USE_HEALPIX
   "Enable Healpix Segmentation, requires healpix to be installed on your system in a place that can be found easily."
   OFF)
-# TODO: this is broken af, the module can't seem to find healpix, even after dnf install healpix-devel and/or chealpix-devel
+
 if(USE_HEALPIX)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/module")
   find_package(HealPix REQUIRED)
-
-  target_compile_options(${PROJECT_NAME} PRIVATE -DUSE_HEALPIX)
+  # TODO: this preprocessor definition doesn't seem to be implemented in the source code?
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_HEALPIX)
   # Are these really necessary?!?? 
   target_link_libraries (${PROJECT_NAME} PRIVATE healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
 endif()
@@ -52,9 +52,10 @@ target_include_directories(${PROJECT_NAME}
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
 separate_arguments(
   ROOT_CXX_FLAGS_LIST 
-  UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native -DUSE_FFT_TOOLS"
+  UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
+target_compile_definitions(${PROJECT_NAME} PRIVATE USE_FFT_TOOLS)
 
 # TODO: compiled just fine without linking these
 # target_link_libraries(${PROJECT_NAME} PRIVATE RootFftwWrapper ${ZLIB_LIBRARIES} ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
