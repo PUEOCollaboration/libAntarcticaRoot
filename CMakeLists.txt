@@ -5,7 +5,8 @@ file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
                                   
 find_package(RootFftwWrapper CONFIG REQUIRED)
-find_package(ROOT CONFIG REQUIRED)# COMPONENTS MathMore MathCore RIO Hist Tree Net Minuit Gui HistPainter)
+find_package(ROOT CONFIG REQUIRED COMPONENTS FitPanel MathMore Minuit) # TODO: figure out which ROOT:: to use
+find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
 
 #================================================================================================
 #                                       OPTIONS
@@ -57,9 +58,11 @@ separate_arguments(
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 target_compile_definitions(${PROJECT_NAME} PRIVATE USE_FFT_TOOLS)
 
-# TODO: compiled just fine without linking these
-# target_link_libraries(${PROJECT_NAME} PRIVATE RootFftwWrapper ${ZLIB_LIBRARIES} ${ROOT_LIBRARIES} ${FFTW_LIBRARIES})
-# target_link_options(${PROJECT_NAME} PRIVATE "-g")             
+target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper
+                                      PRIVATE ZLIB::ZLIB
+                                      PRIVATE ROOT::FitPanel ROOT::MathMore ROOT::Minuit)
+
+target_link_options(${PROJECT_NAME} PRIVATE "-g")             
 
 set(DICTNAME G__${PROJECT_NAME})
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
@@ -105,3 +108,4 @@ install(EXPORT ${PROJECT_NAME}Targets
 
 # installing datafiles (ie. stuff in data/)
 install(DIRECTORY data/ DESTINATION share/anitaCalib)
+    # note: trailing "/" is important here
