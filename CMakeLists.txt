@@ -47,9 +47,9 @@ separate_arguments(
   ROOT_CXX_FLAGS_LIST 
   UNIX_COMMAND ${ROOT_CXX_FLAGS}
 )
-target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
+target_compile_options(${PROJECT_NAME} PUBLIC ${ROOT_CXX_FLAGS_LIST})
 
-# warning, only in debug mode
+# turn on warnings only in debug mode
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<CONFIG:Debug>:-Wall -Wextra>
 )
