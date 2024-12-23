@@ -48,7 +48,14 @@ separate_arguments(
   UNIX_COMMAND ${ROOT_CXX_FLAGS}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
-target_compile_definitions(${PROJECT_NAME} PRIVATE USE_FFT_TOOLS)
+
+# warning, only in debug mode
+target_compile_options(${PROJECT_NAME} PRIVATE
+  $<$<CONFIG:Debug>:-Wall -Wextra>
+)
+
+# TODO: probably harmless, but do downstream projects need this flag?
+target_compile_definitions(${PROJECT_NAME} PUBLIC USE_FFT_TOOLS)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
