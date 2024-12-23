@@ -47,9 +47,8 @@ endif()
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include>
+         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
-
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
 separate_arguments(
   ROOT_CXX_FLAGS_LIST 
@@ -69,7 +68,7 @@ root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINK
 #                                       INSTALLING
 #================================================================================================
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
+install(FILES ${HEADER_FILES} DESTINATION include/${PROJECT_NAME})
 
 # Config files and such
 include(GNUInstallDirs)
