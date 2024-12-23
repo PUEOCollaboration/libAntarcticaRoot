@@ -12,14 +12,6 @@ find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
 #                                       OPTIONS
 #================================================================================================
 
-option(FORCE_OLD_GPP_ABI
-  "Force old g++ ABI; this might be necessary if using new g++ with ROOT compiled with older g++ or other similar situations"
-  OFF)
-
-if(FORCE_OLD_GPP_ABI)
-  target_compile_options(${PROJECT_NAME} PRIVATE -D_GLIBCXX_USE_CXX11_ABI=0)
-endif()
-
 option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" OFF)
 # note: For Fedora Linux users, run `dnf install GeographicLib-devel` first
 if(USE_GEOGRAPHIC_LIB)
@@ -53,7 +45,7 @@ target_include_directories(${PROJECT_NAME}
 # Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
 separate_arguments(
   ROOT_CXX_FLAGS_LIST 
-  UNIX_COMMAND "${ROOT_CXX_FLAGS} -Wall -Wextra -march=native"
+  UNIX_COMMAND ${ROOT_CXX_FLAGS}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${ROOT_CXX_FLAGS_LIST})
 target_compile_definitions(${PROJECT_NAME} PRIVATE USE_FFT_TOOLS)
@@ -62,7 +54,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
                                       PRIVATE ROOT::FitPanel ROOT::MathMore ROOT::Minuit)
 
-target_link_options(${PROJECT_NAME} PRIVATE "-g")             
 
 set(DICTNAME G__${PROJECT_NAME})
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
