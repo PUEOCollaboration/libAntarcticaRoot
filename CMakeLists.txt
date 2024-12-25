@@ -57,7 +57,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 # TODO: probably harmless, but do downstream projects need this flag?
 target_compile_definitions(${PROJECT_NAME} PUBLIC USE_FFT_TOOLS)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper
+target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
                                       PRIVATE ROOT::FitPanel ROOT::MathMore ROOT::Minuit)
 
@@ -101,6 +101,7 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATIO
 # installing the target file
 install(EXPORT ${PROJECT_NAME}Targets
     FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE AntarcticaRoot::
     DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
