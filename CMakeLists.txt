@@ -25,7 +25,7 @@ option(USE_HEALPIX
   OFF)
 
 if(USE_HEALPIX)
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/module")
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   find_package(HealPix REQUIRED)
   # TODO: this preprocessor definition doesn't seem to be implemented in the source code?
   target_compile_definitions(${PROJECT_NAME} PRIVATE USE_HEALPIX)
@@ -76,20 +76,15 @@ install(FILES ${HEADER_FILES} DESTINATION include/${PROJECT_NAME})
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# Generating AntarcticaRootConfig.cmake
-configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
-)
 # Generating AntarcticaRootConfigVersion.cmake
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
-# Installing these two config files
+# Installing config files
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
   DESTINATION "lib/cmake/${PROJECT_NAME}"
 )

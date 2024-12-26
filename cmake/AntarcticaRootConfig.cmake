@@ -1,5 +1,3 @@
-@PACKAGE_INIT@
-
 include("${CMAKE_CURRENT_LIST_DIR}/AntarcticaRootTargets.cmake")
 
 # CRUCIAL!! This must be here for downstream projects to find RootFftwWrapper transitively through
@@ -10,9 +8,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/AntarcticaRootTargets.cmake")
 include(CMakeFindDependencyMacro)
 find_dependency(RootFftwWrapper REQUIRED)
 
-# same idea for other required packages that need to propagate
-find_dependency(ZLIB REQUIRED) # TODO: figure out if zlib is required
-
 # I guess it doesn't hurt to add checks here for stuff that doesn't propagate
+find_dependency(ZLIB REQUIRED) # TODO: figure out if zlib is required
 find_dependency(ROOT CONFIG REQUIRED COMPONENTS FitPanel MathMore Minuit) # TODO: figure out which ROOT:: to use
 
