@@ -5,7 +5,7 @@ file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
                                   
 find_package(RootFftwWrapper CONFIG REQUIRED)
-find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter MathMore Minuit) # TODO: figure out which ROOT:: to use
+find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
 
 #================================================================================================
@@ -59,7 +59,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC USE_FFT_TOOLS)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
-                                      PRIVATE ROOT::HistPainter ROOT::MathMore ROOT::Minuit)
+                                      PRIVATE ROOT::HistPainter ROOT::Ged ROOT::Physics)
 
 
 set(DICTNAME G__${PROJECT_NAME})
