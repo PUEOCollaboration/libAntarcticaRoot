@@ -28,9 +28,9 @@ if(USE_HEALPIX)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   find_package(HealPix REQUIRED)
   # TODO: this preprocessor definition doesn't seem to be implemented in the source code?
-  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_HEALPIX)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC USE_HEALPIX)
   # Are these really necessary?!?? 
-  target_link_libraries (${PROJECT_NAME} PRIVATE healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
+  target_link_libraries (${PROJECT_NAME} PUBLIC healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
 endif()
 
 
