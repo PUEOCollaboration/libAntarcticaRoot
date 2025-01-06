@@ -48,9 +48,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<CONFIG:Debug>:-Wall -Wextra>
 )
 
-# TODO: probably harmless, but do downstream projects need this flag?
-target_compile_definitions(${PROJECT_NAME} PUBLIC USE_FFT_TOOLS)
-
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
                                       PRIVATE ROOT::HistPainter ROOT::Ged ROOT::Physics)
