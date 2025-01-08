@@ -82,7 +82,12 @@ install(FILES
 
 # installing the libraries
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION lib)
-# TODO: not sure if pcm files should be installed, or how (https://root-forum.cern.ch/t/cmake-not-installing-pcm-and-rootmap/50997)
+
+# installing CERN ROOT's _rdict.pcm file
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_rdict.pcm"
+  DESTINATION DESTINATION lib
+)
 
 # installing the target file
 install(EXPORT ${PROJECT_NAME}Targets
