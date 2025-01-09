@@ -38,11 +38,6 @@ endif()
 #                                       BUILDING
 #================================================================================================
 
-# Transform ROOT_CXX_FLAGS into a list of individual flags, and add them to the compilation command
-# TODO: Figure out why this can't be in RootFftwWrapper, even though that was intended
-separate_arguments( ROOT_CXX_FLAGS_LIST UNIX_COMMAND ${ROOT_CXX_FLAGS})
-target_compile_options(${PROJECT_NAME} PUBLIC ${ROOT_CXX_FLAGS_LIST})
-
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
