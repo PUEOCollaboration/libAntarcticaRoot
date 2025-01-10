@@ -8,6 +8,7 @@ find_package(RootFftwWrapper CONFIG REQUIRED)
 find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
 
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF) # turns -std=gnu++17 -> -std=c++17
 #================================================================================================
 #                                       OPTIONS
 #================================================================================================
