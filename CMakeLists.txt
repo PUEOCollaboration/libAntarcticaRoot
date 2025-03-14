@@ -21,20 +21,6 @@ if(USE_GEOGRAPHIC_LIB)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
-option(USE_HEALPIX
-  "Enable Healpix Segmentation, requires healpix to be installed on your system in a place that can be found easily."
-  OFF)
-
-if(USE_HEALPIX)
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-  find_package(HealPix REQUIRED)
-  # TODO: this preprocessor definition doesn't seem to be implemented in the source code?
-  target_compile_definitions(${PROJECT_NAME} PUBLIC USE_HEALPIX)
-  # Are these really necessary?!?? 
-  target_link_libraries (${PROJECT_NAME} PUBLIC healpix_cxx cxxsupport sharp fftpack c_utils cfitsio)
-endif()
-
-
 #================================================================================================
 #                                       BUILDING
 #================================================================================================
