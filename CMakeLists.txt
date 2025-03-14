@@ -1,9 +1,40 @@
 cmake_minimum_required(VERSION 3.19.0)
 project(AntarcticaRoot VERSION 1.0.0)
 
-file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+# note: do not glob files with wildcards
+set(HEADER_FILES 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticAtmosphere.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticaBackground.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticaGeometry.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/BaseList.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/GeoMagnetic.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Geoid.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/RampdemReader.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/RefractionModel.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/SkyMap.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/TArrowAntarctica.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/TGraphAntarctica.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/TH2DAntarctica.h
+)
+add_library(${PROJECT_NAME} SHARED
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaAtmosphere.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaBackground.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaGeometry.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/BaseList.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/GeoMagnetic.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/Geoid.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/RampdemReader.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/RefractionModel.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/SkyMap.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TArrowAntarctica.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TGraphAntarctica.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/TH2DAntarctica.cxx
+)
                                   
+#================================================================================================
+#                                       HOUSEKEEPING
+#================================================================================================
+
 find_package(RootFftwWrapper CONFIG REQUIRED)
 find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
@@ -41,7 +72,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
 
 
 set(DICTNAME G__${PROJECT_NAME})
-file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
 
 #================================================================================================
