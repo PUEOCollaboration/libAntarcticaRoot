@@ -10,5 +10,5 @@ find_dependency(RootFftwWrapper REQUIRED)
 
 # I guess it doesn't hurt to add checks here for stuff that doesn't propagate
 find_dependency(ZLIB REQUIRED) # TODO: figure out if zlib is required
-find_dependency(ROOT CONFIG REQUIRED COMPONENTS FitPanel MathMore Minuit) # TODO: figure out which ROOT:: to use
+find_dependency(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 
