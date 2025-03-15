@@ -35,6 +35,10 @@ add_library(${PROJECT_NAME} SHARED
 #                                       HOUSEKEEPING
 #================================================================================================
 
+if(NOT CMAKE_BUILD_TYPE) 
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "" FORCE) 
+endif()
+
 find_package(RootFftwWrapper CONFIG REQUIRED)
 find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
@@ -61,10 +65,8 @@ target_include_directories(${PROJECT_NAME}
          $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-# turn on warnings only in debug mode
-target_compile_options(${PROJECT_NAME} PRIVATE
-  $<$<CONFIG:Debug>:-Wall -Wextra>
-)
+# use warning flags in RelWithDebInfo mode, which is set to be the default mode
+target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:RelWithDebInfo>:-Wall -Wextra>)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
