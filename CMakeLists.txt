@@ -1,36 +1,7 @@
 cmake_minimum_required(VERSION 3.19.0)
 project(AntarcticaRoot VERSION 1.0.0)
+add_library(${PROJECT_NAME} SHARED)
 
-# note: do not glob files with wildcards
-set(HEADER_FILES 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticAtmosphere.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticaBackground.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/AntarcticaGeometry.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/BaseList.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/GeoMagnetic.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/Geoid.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/RampdemReader.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/RefractionModel.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/SkyMap.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/TArrowAntarctica.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/TGraphAntarctica.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/TH2DAntarctica.h
-)
-add_library(${PROJECT_NAME} SHARED
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaAtmosphere.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaBackground.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/AntarcticaGeometry.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/BaseList.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/GeoMagnetic.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/Geoid.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/RampdemReader.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/RefractionModel.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/SkyMap.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TArrowAntarctica.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TGraphAntarctica.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/TH2DAntarctica.cxx
-)
-                                  
 #================================================================================================
 #                                       HOUSEKEEPING
 #================================================================================================
@@ -60,9 +31,38 @@ endif()
 #                                       BUILDING
 #================================================================================================
 
-target_include_directories(${PROJECT_NAME}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+set(HEADER_FILES 
+  include/AntarcticAtmosphere.h
+  include/AntarcticaBackground.h
+  include/AntarcticaGeometry.h
+  include/BaseList.h
+  include/GeoMagnetic.h
+  include/Geoid.h
+  include/RampdemReader.h
+  include/RefractionModel.h
+  include/SkyMap.h
+  include/TArrowAntarctica.h
+  include/TGraphAntarctica.h
+  include/TH2DAntarctica.h
+)
+target_sources(${PROJECT_NAME} PRIVATE
+  src/AntarcticaAtmosphere.cxx
+  src/AntarcticaBackground.cxx
+  src/AntarcticaGeometry.cxx
+  src/BaseList.cxx
+  src/GeoMagnetic.cxx
+  src/Geoid.cxx
+  src/RampdemReader.cxx
+  src/RefractionModel.cxx
+  src/SkyMap.cxx
+  src/TArrowAntarctica.cxx
+  src/TGraphAntarctica.cxx
+  src/TH2DAntarctica.cxx
+)
+target_sources(${PROJECT_NAME} PUBLIC
+  FILE_SET HEADERS
+  BASE_DIRS include     # <-- Everything in BASE_DIRS is available during the build
+  FILES ${HEADER_FILES} # <-- But only FILES will be installed, although these two are currently the same
 )
 
 # use warning flags in RelWithDebInfo mode, which is set to be the default mode
@@ -72,7 +72,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
                                       PRIVATE ROOT::HistPainter ROOT::Ged ROOT::Physics)
 
-
 set(DICTNAME G__${PROJECT_NAME})
 root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
 
@@ -80,41 +79,43 @@ root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINK
 #                                       INSTALLING
 #================================================================================================
 
-install(FILES ${HEADER_FILES} DESTINATION include/${PROJECT_NAME})
-
-# Config files and such
-include(GNUInstallDirs)
+# Generate AntarcticaRootConfigVersion.cmake
 include(CMakePackageConfigHelpers)
-
-# Generating AntarcticaRootConfigVersion.cmake
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
-# Installing config files
+
+# Install config files
+include(GNUInstallDirs)
 install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  DESTINATION "lib/cmake/${PROJECT_NAME}"
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
-# installing the libraries
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION lib)
+# Install this library and its headers as well as exporting as a CMake Target
+install(
+  TARGETS ${PROJECT_NAME} 
+  EXPORT ${PROJECT_NAME}Targets 
+  FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+)
 
 # installing CERN ROOT's _rdict.pcm file
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_rdict.pcm"
-  DESTINATION DESTINATION lib
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-# installing the target file
-install(EXPORT ${PROJECT_NAME}Targets
-    FILE ${PROJECT_NAME}Targets.cmake
-    NAMESPACE AntarcticaRoot::
-    DESTINATION lib/cmake/${PROJECT_NAME}
+# Generate a Targets.cmake file and directly install it
+install(
+  EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  NAMESPACE AntarcticaRoot::
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
 # installing datafiles (ie. stuff in data/)
-install(DIRECTORY data/ DESTINATION share/anitaCalib)
+install(DIRECTORY data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/anitaCalib)
     # note: trailing "/" is important here
