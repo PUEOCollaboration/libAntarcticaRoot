@@ -111,7 +111,6 @@ install(
 # Generate a Targets.cmake file and directly install it
 install(
   EXPORT ${PROJECT_NAME}Targets
-  FILE ${PROJECT_NAME}Targets.cmake
   NAMESPACE AntarcticaRoot::
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
