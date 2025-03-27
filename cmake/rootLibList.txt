@@ -1,0 +1,65 @@
+ROOT::HistPainter
+  libHistPainter
+    TPaletteAxis
+  libGpad
+    TCanvas
+    TPad
+  libGraf
+    TEllipse
+    TMarker
+    TText
+    TLegend
+    TGaxis
+    TArrow   
+  libHist
+    TGraph
+    TH2
+    TH2D
+    TGraph2D
+    TAxis
+    TF1
+    TProfile2D
+  libMathCore
+    TMath
+    TRandom
+    TRandom3
+  libCore
+    TROOT
+    TStyle
+    TString
+    TVirtualPad
+    TObjArray
+    TObjString
+    TExec
+    TColor
+    TDatime (probably)
+    TClass
+    TList
+    RVersion.h (probably)
+    RTypes (probably)
+    TBuffer
+  libRIO
+    TFile
+    TKey
+  libThread
+    TMutex
+
+ROOT::Physics
+  libPhysics
+    TVector3
+
+ROOT::Ged (this one's big, like FitPanel and HistPainter)
+  libGui
+    TGToolTip
+  libGed
+    TGraphEditor
+  libTree
+    TTree
+    TChain
+    TCut
+
+
+  
+
+
+
