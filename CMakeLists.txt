@@ -27,42 +27,48 @@ if(USE_GEOGRAPHIC_LIB)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
+option(MINIMALLY_INCLUDE "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" ON)
+
 #================================================================================================
 #                                       BUILDING
 #================================================================================================
 
-set(HEADER_FILES 
-  include/AntarcticAtmosphere.h
-  include/AntarcticaBackground.h
-  include/AntarcticaGeometry.h
-  include/BaseList.h
-  include/GeoMagnetic.h
-  include/Geoid.h
-  include/RampdemReader.h
-  include/RefractionModel.h
-  include/SkyMap.h
-  include/TArrowAntarctica.h
-  include/TGraphAntarctica.h
-  include/TH2DAntarctica.h
-)
-target_sources(${PROJECT_NAME} PRIVATE
-  src/AntarcticaAtmosphere.cxx
-  src/AntarcticaBackground.cxx
-  src/AntarcticaGeometry.cxx
-  src/BaseList.cxx
-  src/GeoMagnetic.cxx
-  src/Geoid.cxx
-  src/RampdemReader.cxx
-  src/RefractionModel.cxx
-  src/SkyMap.cxx
-  src/TArrowAntarctica.cxx
-  src/TGraphAntarctica.cxx
-  src/TH2DAntarctica.cxx
-)
+list(APPEND HEADER_FILES include/Geoid.h include/RampdemReader.h)
+
+target_sources(${PROJECT_NAME} PRIVATE src/Geoid.cxx src/RampdemReader.cxx)
+
+if(NOT MINIMALLY_INCLUDE)
+  list(APPEND HEADER_FILES
+    include/AntarcticAtmosphere.h
+    include/AntarcticaBackground.h
+    include/AntarcticaGeometry.h
+    include/BaseList.h
+    include/GeoMagnetic.h
+    include/RefractionModel.h
+    include/SkyMap.h
+    include/TArrowAntarctica.h
+    include/TGraphAntarctica.h
+    include/TH2DAntarctica.h
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    src/AntarcticaAtmosphere.cxx
+    src/AntarcticaBackground.cxx
+    src/AntarcticaGeometry.cxx
+    src/BaseList.cxx
+    src/GeoMagnetic.cxx
+    src/RefractionModel.cxx
+    src/SkyMap.cxx
+    src/TArrowAntarctica.cxx
+    src/TGraphAntarctica.cxx
+    src/TH2DAntarctica.cxx
+  )
+endif()
+
 target_sources(${PROJECT_NAME} PUBLIC
   FILE_SET HEADERS
   BASE_DIRS include     # <-- Everything in BASE_DIRS is available during the build
-  FILES ${HEADER_FILES} # <-- But only FILES will be installed, although these two are currently the same
+  FILES ${HEADER_FILES} # <-- But only FILES will be installed
 )
 
 # use warning flags in RelWithDebInfo mode, which is set to be the default mode
