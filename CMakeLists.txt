@@ -76,7 +76,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:RelWithDebInfo>:-Wall 
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
-                                      PRIVATE ROOT::HistPainter ROOT::Ged ROOT::Physics)
+                                      PUBLIC  ROOT::HistPainter ROOT::Ged ROOT::Physics)
 
 set(DICTNAME G__${PROJECT_NAME})
 root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
@@ -85,7 +85,7 @@ root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINK
 #                                       INSTALLING
 #================================================================================================
 
-# Generate AntarcticaRootConfigVersion.cmake
+# Generate AntarcticaRootConfigVersion.cmake in the build/ directory
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
@@ -93,7 +93,7 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-# Install config files
+# Install the config file generated above and the Config file in the cmake/ directory
 include(GNUInstallDirs)
 install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
@@ -101,11 +101,12 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
-# Install this library and its headers as well as exporting as a CMake Target
+# Install this library and its headers, exporting as a CMake Target that downstream projects can import
 install(
   TARGETS ${PROJECT_NAME} 
   EXPORT ${PROJECT_NAME}Targets 
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # installing CERN ROOT's _rdict.pcm file
@@ -115,6 +116,7 @@ install(
 )
 
 # Generate a Targets.cmake file and directly install it
+# this is so that downstream projects can find the target created by this project.
 install(
   EXPORT ${PROJECT_NAME}Targets
   NAMESPACE AntarcticaRoot::
