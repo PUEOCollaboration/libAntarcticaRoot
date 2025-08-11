@@ -27,42 +27,48 @@ if(USE_GEOGRAPHIC_LIB)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
+option(MINIMALLY_INCLUDE "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" ON)
+
 #================================================================================================
 #                                       BUILDING
 #================================================================================================
 
-set(HEADER_FILES 
-  include/AntarcticAtmosphere.h
-  include/AntarcticaBackground.h
-  include/AntarcticaGeometry.h
-  include/BaseList.h
-  include/GeoMagnetic.h
-  include/Geoid.h
-  include/RampdemReader.h
-  include/RefractionModel.h
-  include/SkyMap.h
-  include/TArrowAntarctica.h
-  include/TGraphAntarctica.h
-  include/TH2DAntarctica.h
-)
-target_sources(${PROJECT_NAME} PRIVATE
-  src/AntarcticaAtmosphere.cxx
-  src/AntarcticaBackground.cxx
-  src/AntarcticaGeometry.cxx
-  src/BaseList.cxx
-  src/GeoMagnetic.cxx
-  src/Geoid.cxx
-  src/RampdemReader.cxx
-  src/RefractionModel.cxx
-  src/SkyMap.cxx
-  src/TArrowAntarctica.cxx
-  src/TGraphAntarctica.cxx
-  src/TH2DAntarctica.cxx
-)
+list(APPEND HEADER_FILES include/Geoid.h include/RampdemReader.h)
+
+target_sources(${PROJECT_NAME} PRIVATE src/Geoid.cxx src/RampdemReader.cxx)
+
+if(NOT MINIMALLY_INCLUDE)
+  list(APPEND HEADER_FILES
+    include/AntarcticAtmosphere.h
+    include/AntarcticaBackground.h
+    include/AntarcticaGeometry.h
+    include/BaseList.h
+    include/GeoMagnetic.h
+    include/RefractionModel.h
+    include/SkyMap.h
+    include/TArrowAntarctica.h
+    include/TGraphAntarctica.h
+    include/TH2DAntarctica.h
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    src/AntarcticaAtmosphere.cxx
+    src/AntarcticaBackground.cxx
+    src/AntarcticaGeometry.cxx
+    src/BaseList.cxx
+    src/GeoMagnetic.cxx
+    src/RefractionModel.cxx
+    src/SkyMap.cxx
+    src/TArrowAntarctica.cxx
+    src/TGraphAntarctica.cxx
+    src/TH2DAntarctica.cxx
+  )
+endif()
+
 target_sources(${PROJECT_NAME} PUBLIC
   FILE_SET HEADERS
   BASE_DIRS include     # <-- Everything in BASE_DIRS is available during the build
-  FILES ${HEADER_FILES} # <-- But only FILES will be installed, although these two are currently the same
+  FILES ${HEADER_FILES} # <-- But only FILES will be installed
 )
 
 # use warning flags in RelWithDebInfo mode, which is set to be the default mode
@@ -70,7 +76,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:RelWithDebInfo>:-Wall 
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
                                       PRIVATE ZLIB::ZLIB
-                                      PRIVATE ROOT::HistPainter ROOT::Ged ROOT::Physics)
+                                      PUBLIC  ROOT::HistPainter ROOT::Ged ROOT::Physics)
 
 set(DICTNAME G__${PROJECT_NAME})
 root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
@@ -79,7 +85,7 @@ root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINK
 #                                       INSTALLING
 #================================================================================================
 
-# Generate AntarcticaRootConfigVersion.cmake
+# Generate AntarcticaRootConfigVersion.cmake in the build/ directory
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
@@ -87,7 +93,7 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-# Install config files
+# Install the config file generated above and the Config file in the cmake/ directory
 include(GNUInstallDirs)
 install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
@@ -95,11 +101,12 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
-# Install this library and its headers as well as exporting as a CMake Target
+# Install this library and its headers, exporting as a CMake Target that downstream projects can import
 install(
   TARGETS ${PROJECT_NAME} 
   EXPORT ${PROJECT_NAME}Targets 
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # installing CERN ROOT's _rdict.pcm file
@@ -109,6 +116,7 @@ install(
 )
 
 # Generate a Targets.cmake file and directly install it
+# this is so that downstream projects can find the target created by this project.
 install(
   EXPORT ${PROJECT_NAME}Targets
   NAMESPACE AntarcticaRoot::
