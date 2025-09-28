@@ -197,3 +197,17 @@ void Geoid::Position::updateLonLatFromEastingNorthing(bool mustRecalcuateAltitud
   EastingNorthingToLonLat(easting, northing, lon, lat);
   SetLonLatAlt(lon, lat, alt);
 }
+
+
+int Geoid::Position::__signOfZ(const Geoid::Pole& pole) const {
+  switch(pole){
+    case Geoid::Pole::North: return -1;
+  default:
+    case Geoid::Pole::South: return 1;
+  }
+}
+
+Geoid::Pole Geoid::Position::__getPole(double z) const{
+  Geoid::Pole p = z >= 0 ? Geoid::Pole::South : Geoid::Pole::North;
+  return p;
+}

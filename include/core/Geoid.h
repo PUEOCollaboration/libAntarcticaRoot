@@ -48,17 +48,6 @@ namespace Geoid {
 
 
   enum class Pole {North,South}; // for choosing solutions for Geoid z as a function of x,y
-  inline int signOfZ(Pole pole){ // See namespace comments on the coordinate system for context
-    switch(pole){
-    case Pole::North: return -1;
-    default:
-    case Pole::South: return 1;
-    }
-  }
-  inline Pole getPole(double z){ // See namespace comments on the coordinate system for context
-    Pole p = z >= 0 ? Pole::South : Pole::North;
-    return p;
-  }
 
 
   
@@ -159,7 +148,7 @@ namespace Geoid {
     inline Double_t Phi() const;
 
     inline Pole nearerPole() const {
-      return getPole(Z());
+      return __getPole(Z());
     }
 
 
@@ -252,6 +241,12 @@ namespace Geoid {
     mutable std::array<Double_t, 3> fCartAtLastGeoidCalc       = {-1, -1, -1};    //! fX, fY, fZ when the geoid was last updated. Is not stored!
     mutable std::array<Double_t, 3> fCartAtLastAngleCalc       = {0, 0, 0};       //! fX, fY, fZ when the angles were last updated. Is not stored!
     mutable std::array<Double_t, 3> fLonLatAtLastEastNorthCalc = {-9999, -9999};  //! Longitude(), Latitude() when the Easting/Northing were last calculated. Is not stored!
+
+    // See namespace comments on the coordinate system for context
+    int __signOfZ(const Pole& pole) const;
+
+    // See namespace comments on the coordinate system for context
+    Pole __getPole(double z) const;
 
   };
 
@@ -399,7 +394,7 @@ namespace Geoid {
       return TMath::QuietNaN();
     }
     else {
-      return signOfZ(pole)*TMath::Sqrt(zSq);
+      return __signOfZ(pole)*TMath::Sqrt(zSq);
     }
   }
 
