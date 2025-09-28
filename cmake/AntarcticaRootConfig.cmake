@@ -8,6 +8,5 @@ include("${CMAKE_CURRENT_LIST_DIR}/AntarcticaRootTargets.cmake")
 include(CMakeFindDependencyMacro)
 find_dependency(RootFftwWrapper REQUIRED)
 
-find_dependency(ZLIB REQUIRED) # TODO: figure out if zlib is required
 find_dependency(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
 
