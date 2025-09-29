@@ -117,34 +117,30 @@ namespace Geoid {
     /**
      * Longitude/Latitude/Altitude Getter functions
      */
-    inline Double_t Latitude() const;
-    inline Double_t Longitude() const;
-    inline Double_t Altitude() const;
-    inline Double_t Easting() const;
-    inline Double_t Northing() const;
-
+    Double_t Longitude() const;
+    Double_t Latitude() const;
+    Double_t Altitude() const;
+    Double_t Easting() const;
+    Double_t Northing() const;
+    Double_t Theta() const;
+    Double_t Phi() const;
     Double_t EllipsoidSurface() const;
+
     inline void GetLonLatAlt(Double_t& lon, Double_t& lat, Double_t& alt) const;
     template <class T> void GetLonLatAlt(T& t) const;
     template <class T> void GetLonLatAlt(T* t) const;
 
-    inline void SetLongitude(double longitude);
-    inline void SetLatitude(double latitude);
-    inline void SetAltitude(double altitude);
-    inline void SetLonLatAlt(double lon, double lat, double alt);
+    void SetLongitude(double longitude);
+    void SetLatitude(double latitude);
+    void SetAltitude(double altitude);
+    void SetLonLatAlt(double lon, double lat, double alt);
 
-    inline void SetEasting(double easting);
-    inline void SetNorthing(double northing);
-    inline void SetEastingNorthing(double easting, double northing);
-    inline void SetEastingNorthingAlt(double easting, double northing, double alt);
+    void SetEasting(double easting);
+    void SetNorthing(double northing);
+    void SetEastingNorthing(double easting, double northing);
+    void SetEastingNorthingAlt(double easting, double northing, double alt);
 
-    inline Double_t Theta() const;
-    inline Double_t Phi() const;
-
-    inline Pole nearerPole() const {
-      return __getPole(Z());
-    }
-
+    Pole nearerPole() const;
 
     /** 
      * Find the value of z on Geoid surface given the values X(), Y()
@@ -154,7 +150,7 @@ namespace Geoid {
      * 
      * @return The value of Z
      */
-    inline double surfaceZ(Pole pole);
+    double surfaceZ(Pole pole);
 
     /** 
      * Find the value of z on Geoid surface given the values X(), Y()
@@ -163,9 +159,7 @@ namespace Geoid {
      * 
      * @return The value of Z
      */
-    inline double surfaceZ(){
-      return surfaceZ(nearerPole());
-    }
+    double surfaceZ();
 
     /** 
      * Change z so that we are on the surface at this X(),  Y()
@@ -173,24 +167,18 @@ namespace Geoid {
      * 
      * @param signZ pole chose the sign of Z()
      */
-    inline void moveToGeoidZ(Pole pole);    
+    void moveToGeoidZ(Pole pole);    
 
     /** 
      * Change z so that we are on the surface at this X(),  Y()
      * @see surfaceZ(Pole pole)
      * 
      */
-    inline void moveToGeoidZ(){
-      moveToGeoidZ(nearerPole());
-    }
+    void moveToGeoidZ();
 
-
-
-    inline Double_t Distance(const Position& p2) const; ///@todo make this better
+    Double_t Distance(const Position& p2) const; ///@todo make this better
 
   private:
-
-
     /**
      * How the class actually works:
      *
@@ -213,14 +201,13 @@ namespace Geoid {
      */
     void copyState(const Position& other);
 
+    // can't make const as the cartesian x,y,z are represented in TVector3
+    // and accessors aren't virtual and so can't be overloaded. 
+    void updateCartesianFromGeoid();
     void updateGeoidFromCartesian() const;
     void updateAnglesFromCartesian() const;
     void updateEastingNorthingFromLonLat() const;
-
-    // can't make const as the cartesian x,y,z are represented in TVector3
-    // and accessors aren't virtual and so can't be overloaded. 
     void updateLonLatFromEastingNorthing(bool mustRecalcuateAltitudeFirst);
-    void updateCartesianFromGeoid();
 
     mutable Double_t longitude = 0;
     mutable Double_t latitude  = 0;
@@ -245,118 +232,12 @@ namespace Geoid {
 }; // end class def
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   template <class T> Position::Position(const T& t){
     SetLonLatAlt(t.longitude,  t.latitude, t.altitude);
     updateCartesianFromGeoid();
   }
 
   template <class T> Position::Position(const T* t) : Position(*t){;}
-
-
-  inline void Position::SetLongitude(double lon) {
-    if(lon > 180){
-      lon -= 360;
-    }
-    longitude = lon;
-    updateCartesianFromGeoid();
-  }
-  inline void Position::SetLatitude(double lat){
-    latitude = lat;
-    updateCartesianFromGeoid();
-  }
-  inline void Position::SetAltitude(double alt) {
-    altitude = alt;
-    updateCartesianFromGeoid();
-  }
-  inline void Position::SetLonLatAlt(double lon, double lat, double alt) {
-    latitude = lat;
-    altitude = alt;
-    SetLongitude(lon);
-  }
-
-
-  inline void Position::SetEasting(double east) {
-    northing = Northing();
-    easting = east;
-    updateLonLatFromEastingNorthing(false);
-  }
-  inline void Position::SetNorthing(double north) {    
-    easting = Easting();
-    northing = north;
-    updateLonLatFromEastingNorthing(false);
-  }
-  inline void Position::SetEastingNorthing(double east, double north) {
-    easting = east;
-    northing = north;
-    updateLonLatFromEastingNorthing(true);
-  }
-  inline void Position::SetEastingNorthingAlt(double east, double north, double alt) {
-    easting = east;
-    northing = north;
-    altitude = alt;
-    updateLonLatFromEastingNorthing(false);
-  }
-
-
-
-  inline Double_t Position::Latitude() const {
-    updateGeoidFromCartesian();
-    return latitude;
-  }
-  inline Double_t Position::Longitude() const {
-    updateGeoidFromCartesian();
-    return longitude;
-  }
-  inline Double_t Position::Altitude() const {
-    updateGeoidFromCartesian();
-    return altitude;
-  }
-
-  inline Double_t Position::Theta() const {
-    updateAnglesFromCartesian();
-    return theta;
-  }
-  inline Double_t Position::Phi() const {
-    updateAnglesFromCartesian();
-    return phi;
-  }
-
-
-  inline Double_t Position::Easting() const {
-    updateEastingNorthingFromLonLat();
-    return easting;
-  }
-
-  inline Double_t Position::Northing() const {
-    updateEastingNorthingFromLonLat();
-    return northing;
-  }
-
-  inline Double_t Position::EllipsoidSurface() const {
-    return getGeoidRadiusAtCosTheta(CosTheta());
-  }
-
-
 
   void Position::GetLonLatAlt(Double_t& lon, Double_t& lat, Double_t& alt) const {
     // call functions rather than direct access so cache is updated!
@@ -375,53 +256,6 @@ namespace Geoid {
     GetLonLatAlt(*t);
   }
 
-
-
-
-  inline double Position::surfaceZ(Pole pole){
-    // ellipse defined by: p^{2}/(geoid_max^{2}) + z^{2}/(geoid_min^{2}) = 1
-    const double pSq = X()*X() + Y()*Y(); //lateral width of the geoid
-    const double zSq = GEOID_MIN*GEOID_MIN*(1 - pSq/(GEOID_MAX*GEOID_MAX));
-    if(zSq < 0){
-      std::cerr <<  "Error in" << __PRETTY_FUNCTION__ << " can't find z if outside Geoid in x/y plane! "
-		<< " x = " << X() << ", y = " << Y() << ", GEOID_MAX = " << GEOID_MAX << std::endl;
-      return TMath::QuietNaN();
-    }
-    else {
-      return __signOfZ(pole)*TMath::Sqrt(zSq);
-    }
-  }
-
-  inline void Position::moveToGeoidZ(Pole pole){
-    SetZ(surfaceZ(pole));
-  }
-
-  inline Double_t Position::Distance(const Position& p2) const{
-    return (*this - p2).Mag();
-  }
-
-
-
-  inline void Position::copyState(const Position& other){
-    SetXYZ(other.X(), other.Y(), other.Z());// maybe redundant, but oh well
-    longitude = other.longitude;
-    latitude = other.latitude;
-
-    altitude = other.altitude;
-    theta = other.theta;
-    phi = other.phi;
-    easting = other.easting;
-    northing = other.northing;
-    for(size_t i=0; i < fCartAtLastGeoidCalc.size(); i++){
-      fCartAtLastGeoidCalc[i] = other.fCartAtLastGeoidCalc[i];
-    }
-    for(size_t i=0; i < fCartAtLastAngleCalc.size(); i++){
-      fCartAtLastAngleCalc[i] = other.fCartAtLastAngleCalc[i];
-    }
-    for(size_t i=0; i < fLonLatAtLastEastNorthCalc.size(); i++){
-      fLonLatAtLastEastNorthCalc[i] = other.fLonLatAtLastEastNorthCalc[i];
-    }    
-  }
 }
 
 /** 

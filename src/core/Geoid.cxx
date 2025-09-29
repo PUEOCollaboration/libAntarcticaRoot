@@ -126,7 +126,14 @@ Double_t Geoid::getDistanceToCentreOfEarth(Double_t lat)
     return;
   }
 
+
+std::ostream& operator<<(std::ostream& os, const TVector3& v){  
+  os << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
+  return os;
+}
+
 /*-------------------- End of Free Functions  --------------------*/
+
 /** 
  * @brief Custom streamer for ROOT to handle the laziness of coordinate conversions.
  * 
@@ -163,20 +170,158 @@ void Geoid::Position::Streamer(TBuffer &R__b){
   }
 }
 
+/*-------------------- PUBLIC Class Method Defintions --------------------*/
 
-std::ostream& operator<<(std::ostream& os, const TVector3& v){  
-  os << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
-  return os;
+Double_t Geoid::Position::Longitude() const {
+  updateGeoidFromCartesian();
+  return longitude;
 }
 
+Double_t Geoid::Position::Latitude() const {
+  updateGeoidFromCartesian();
+  return latitude;
+}
+
+Double_t Geoid::Position::Altitude() const {
+  updateGeoidFromCartesian();
+  return altitude;
+}
+
+Double_t Geoid::Position::Easting() const {
+  updateEastingNorthingFromLonLat();
+  return easting;
+}
+
+Double_t Geoid::Position::Northing() const {
+  updateEastingNorthingFromLonLat();
+  return northing;
+}
+
+Double_t Geoid::Position::Theta() const {
+  updateAnglesFromCartesian();
+  return theta;
+}
+
+Double_t Geoid::Position::Phi() const {
+  updateAnglesFromCartesian();
+  return phi;
+}
+
+Double_t Geoid::Position::EllipsoidSurface() const {
+  return getGeoidRadiusAtCosTheta(CosTheta());
+}
+
+void Geoid::Position::SetLongitude(double lon) {
+  if(lon > 180){
+    lon -= 360;
+  }
+  longitude = lon;
+  updateCartesianFromGeoid();
+}
+
+void Geoid::Position::SetLatitude(double lat){
+  latitude = lat;
+  updateCartesianFromGeoid();
+}
+
+void Geoid::Position::SetAltitude(double alt) {
+  altitude = alt;
+  updateCartesianFromGeoid();
+}
+
+void Geoid::Position::SetLonLatAlt(double lon, double lat, double alt) {
+  latitude = lat;
+  altitude = alt;
+  SetLongitude(lon);
+}
+
+void Geoid::Position::SetEasting(double east) {
+  northing = Northing();
+  easting = east;
+  updateLonLatFromEastingNorthing(false);
+}
+
+void Geoid::Position::SetNorthing(double north) {    
+  easting = Easting();
+  northing = north;
+  updateLonLatFromEastingNorthing(false);
+}
+
+void Geoid::Position::SetEastingNorthing(double east, double north) {
+  easting = east;
+  northing = north;
+  updateLonLatFromEastingNorthing(true);
+}
+
+void Geoid::Position::SetEastingNorthingAlt(double east, double north, double alt) {
+  easting = east;
+  northing = north;
+  altitude = alt;
+  updateLonLatFromEastingNorthing(false);
+}
+
+Geoid::Pole Geoid::Position::nearerPole() const {
+  return __getPole(Z());
+}
+
+double Geoid::Position::surfaceZ(Pole pole){
+  // ellipse defined by: p^{2}/(geoid_max^{2}) + z^{2}/(geoid_min^{2}) = 1
+  const double pSq = X()*X() + Y()*Y(); //lateral width of the geoid
+  const double zSq = GEOID_MIN*GEOID_MIN*(1 - pSq/(GEOID_MAX*GEOID_MAX));
+  if(zSq < 0){
+    std::cerr <<  "Error in" << __PRETTY_FUNCTION__ << " can't find z if outside Geoid in x/y plane! "
+  << " x = " << X() << ", y = " << Y() << ", GEOID_MAX = " << GEOID_MAX << std::endl;
+    return TMath::QuietNaN();
+  }
+  else {
+    return __signOfZ(pole)*TMath::Sqrt(zSq);
+  }
+}
+
+double Geoid::Position::surfaceZ(){
+  return surfaceZ(nearerPole()); 
+}
+
+void Geoid::Position::moveToGeoidZ(Pole pole){
+  SetZ(surfaceZ(pole));
+}
+
+void Geoid::Position::moveToGeoidZ(){
+  moveToGeoidZ(nearerPole());
+}
+
+Double_t Geoid::Position::Distance(const Position& p2) const{
+  return (*this - p2).Mag();
+}
+
+/*-------------------- PRIVATE Class Method Defintions --------------------*/
+
+void Geoid::Position::copyState(const Position& other){
+  SetXYZ(other.X(), other.Y(), other.Z());// maybe redundant, but oh well
+  longitude = other.longitude;
+  latitude = other.latitude;
+
+  altitude = other.altitude;
+  theta = other.theta;
+  phi = other.phi;
+  easting = other.easting;
+  northing = other.northing;
+  for(size_t i=0; i < fCartAtLastGeoidCalc.size(); i++){
+    fCartAtLastGeoidCalc[i] = other.fCartAtLastGeoidCalc[i];
+  }
+  for(size_t i=0; i < fCartAtLastAngleCalc.size(); i++){
+    fCartAtLastAngleCalc[i] = other.fCartAtLastAngleCalc[i];
+  }
+  for(size_t i=0; i < fLonLatAtLastEastNorthCalc.size(); i++){
+    fLonLatAtLastEastNorthCalc[i] = other.fLonLatAtLastEastNorthCalc[i];
+  }    
+}
 
 void Geoid::Position::updateCartesianFromGeoid() {
   // always called after any lon/lat/alt has been updated
   Geoid::getCartesianCoords(latitude, longitude, altitude, fCartAtLastGeoidCalc.data());
   SetXYZ(fCartAtLastGeoidCalc[0], fCartAtLastGeoidCalc[1], fCartAtLastGeoidCalc[2]);
 }
-
-
 
 void Geoid::Position::updateGeoidFromCartesian() const {
   // called when Longitude(), Latitude(), Altitude() is requested
@@ -189,7 +334,6 @@ void Geoid::Position::updateGeoidFromCartesian() const {
     Geoid::getLatLonAltFromCartesian(fCartAtLastGeoidCalc.data(), latitude, longitude, altitude);
   }  
 }
-
 
 void Geoid::Position::updateAnglesFromCartesian() const {
 
@@ -209,8 +353,6 @@ void Geoid::Position::updateAnglesFromCartesian() const {
   }
 }
 
-
-
 void Geoid::Position::updateEastingNorthingFromLonLat() const {
 
   if(longitude != fLonLatAtLastEastNorthCalc[0] ||
@@ -226,7 +368,6 @@ void Geoid::Position::updateEastingNorthingFromLonLat() const {
   }
 }
 
-
 void Geoid::Position::updateLonLatFromEastingNorthing(bool mustRecalcuateAltitudeFirst) {
   // Since we are going to eventually update cartesian from lon/lat/alt
   // we must make sure altitude is up to date...
@@ -237,7 +378,6 @@ void Geoid::Position::updateLonLatFromEastingNorthing(bool mustRecalcuateAltitud
   EastingNorthingToLonLat(easting, northing, lon, lat);
   SetLonLatAlt(lon, lat, alt);
 }
-
 
 int Geoid::Position::__signOfZ(const Geoid::Pole& pole) const {
   switch(pole){
