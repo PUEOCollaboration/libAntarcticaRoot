@@ -4,6 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#if defined(INCLUDE_MISC)
 #pragma link C++ namespace BaseList;
 #pragma link C++ class BaseList::base+;
 #pragma link C++ class BaseList::path+;
@@ -25,16 +26,19 @@
 #pragma link C++ class AntarcticAtmosphere::StandardUS; 
 #pragma link C++ class AntarcticAtmosphere::ExponentialRefractivity; 
 #pragma link C++ class AntarcticAtmosphere::ArtificialInversion;
+#endif
 
 #pragma link C++ namespace Geoid;
 #pragma link C++ class Geoid::Position-;
 
+#if defined(INCLUDE_MISC)
 #pragma link C++ namespace Refraction;
 #pragma link C++ class Refraction::Model; 
 #pragma link C++ class Refraction::PositionIndependentModel; 
 #pragma link C++ class Refraction::PGFit; 
 #pragma link C++ class Refraction::RaytracerSpherical; 
 #pragma link C++ class Refraction::SphRay; 
+#endif
 #pragma link C++ class RampdemReader; 
 
 #endif
