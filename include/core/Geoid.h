@@ -52,9 +52,9 @@ namespace Geoid {
 
   
 
-  inline Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta);
+  Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta);
   Double_t getGeoidRadiusAtLatitude(Double_t lat);
-  inline Double_t getGeoidRadiusAtTheta(Double_t theta);
+  Double_t getGeoidRadiusAtTheta(Double_t theta);
   void getCartesianCoords(Double_t lat, Double_t lon, Double_t alt, Double_t p[3]);
   void getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double_t &lon, Double_t &alt);
   Double_t getDistanceToCentreOfEarth(Double_t lat);
@@ -248,7 +248,7 @@ namespace Geoid {
     // See namespace comments on the coordinate system for context
     Pole __getPole(double z) const;
 
-  };
+}; // end class def
 
 
 
@@ -431,17 +431,6 @@ namespace Geoid {
 
 
 
-  inline Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta) {
-    /**
-     * I discovered an approximately ~0.3 meter discrepancy at the poles between
-     * methods setting lon/lat/alt=0 and getGeoidRadiusAtCosTheta.
-     * Call this function with higherOrderCorrection = false to restore previous behaviour.
-     */
-    return GEOID_MIN*GEOID_MAX/TMath::Sqrt(GEOID_MIN*GEOID_MIN-(GEOID_MIN*GEOID_MIN-GEOID_MAX*GEOID_MAX)*cosTheta*cosTheta);
-  }
-  inline Double_t getGeoidRadiusAtTheta(Double_t theta) {
-    return getGeoidRadiusAtCosTheta(TMath::Cos(theta));
-  }
 
 
 

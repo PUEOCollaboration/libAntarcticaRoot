@@ -8,51 +8,26 @@
 
 ClassImp(Geoid::Position)
 
-/** 
- * @brief Custom streamer for ROOT to handle the laziness of coordinate conversions.
- * 
- * Since phi/theta, lon/lat/alt and easting/northing are calculated lazily they might
- * not be correct at the moment an object is written to disk if we used the default streamer.
- * Here we implement our own streamer which injects the proper coordinate conversions before
- * writing and initialises "AtLast" members (which aren't stored) to values that imply the
- * stored values are correct.
- * 
- * @param R__b the ROOT buffer
- */
-void Geoid::Position::Streamer(TBuffer &R__b){
-  if (R__b.IsReading()) {
-    Position::Class()->ReadBuffer(R__b, this);
+/*-------------------- Free Functions (some of them used by NiceMC or pueoAnalysisFramework) --------------------*/
 
-    fCartAtLastAngleCalc[0] = X();
-    fCartAtLastAngleCalc[1] = Y();
-    fCartAtLastAngleCalc[2] = Z();
-
-    fCartAtLastGeoidCalc[0] = X();
-    fCartAtLastGeoidCalc[1] = Y();
-    fCartAtLastGeoidCalc[2] = Z();
-
-    fLonLatAtLastEastNorthCalc[0] = longitude;
-    fLonLatAtLastEastNorthCalc[1] = latitude;
-  }
-  else {
-    // force all cached values to be correct *before* write
-    updateAnglesFromCartesian();
-    updateGeoidFromCartesian();
-    updateEastingNorthingFromLonLat();
-
-    Position::Class()->WriteBuffer(R__b, this);
-  }
+Double_t Geoid::getGeoidRadiusAtCosTheta(Double_t cosTheta) {
+  /**
+   * I discovered an approximately ~0.3 meter discrepancy at the poles between
+   * methods setting lon/lat/alt=0 and getGeoidRadiusAtCosTheta.
+   * Call this function with higherOrderCorrection = false to restore previous behaviour.
+   */
+  return GEOID_MIN*GEOID_MAX/TMath::Sqrt(GEOID_MIN*GEOID_MIN-(GEOID_MIN*GEOID_MIN-GEOID_MAX*GEOID_MAX)*cosTheta*cosTheta);
 }
 
-
-std::ostream& operator<<(std::ostream& os, const TVector3& v){  
-  os << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
-  return os;
+Double_t Geoid::getGeoidRadiusAtLatitude(Double_t latitude) {
+  Position v;
+  v.SetLonLatAlt(0, latitude, 0);
+  return getGeoidRadiusAtCosTheta(v.CosTheta());
 }
 
-  
-
-
+Double_t Geoid::getGeoidRadiusAtTheta(Double_t theta) {
+  return getGeoidRadiusAtCosTheta(TMath::Cos(theta));
+}
 
 void Geoid::getCartesianCoords(Double_t lat, Double_t lon, Double_t alt, Double_t p[3]){
 
@@ -110,11 +85,6 @@ void Geoid::getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double
   alt = height;
 }
 
-
-
-
-
-
 Double_t Geoid::getDistanceToCentreOfEarth(Double_t lat)
 {
   Position v;
@@ -122,11 +92,47 @@ Double_t Geoid::getDistanceToCentreOfEarth(Double_t lat)
   return v.Mag();
 }
 
+/*-------------------- End of Free Functions  --------------------*/
+/** 
+ * @brief Custom streamer for ROOT to handle the laziness of coordinate conversions.
+ * 
+ * Since phi/theta, lon/lat/alt and easting/northing are calculated lazily they might
+ * not be correct at the moment an object is written to disk if we used the default streamer.
+ * Here we implement our own streamer which injects the proper coordinate conversions before
+ * writing and initialises "AtLast" members (which aren't stored) to values that imply the
+ * stored values are correct.
+ * 
+ * @param R__b the ROOT buffer
+ */
+void Geoid::Position::Streamer(TBuffer &R__b){
+  if (R__b.IsReading()) {
+    Position::Class()->ReadBuffer(R__b, this);
 
-Double_t Geoid::getGeoidRadiusAtLatitude(Double_t latitude) {
-  Position v;
-  v.SetLonLatAlt(0, latitude, 0);
-  return getGeoidRadiusAtCosTheta(v.CosTheta());
+    fCartAtLastAngleCalc[0] = X();
+    fCartAtLastAngleCalc[1] = Y();
+    fCartAtLastAngleCalc[2] = Z();
+
+    fCartAtLastGeoidCalc[0] = X();
+    fCartAtLastGeoidCalc[1] = Y();
+    fCartAtLastGeoidCalc[2] = Z();
+
+    fLonLatAtLastEastNorthCalc[0] = longitude;
+    fLonLatAtLastEastNorthCalc[1] = latitude;
+  }
+  else {
+    // force all cached values to be correct *before* write
+    updateAnglesFromCartesian();
+    updateGeoidFromCartesian();
+    updateEastingNorthingFromLonLat();
+
+    Position::Class()->WriteBuffer(R__b, this);
+  }
+}
+
+
+std::ostream& operator<<(std::ostream& os, const TVector3& v){  
+  os << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
+  return os;
 }
 
 
