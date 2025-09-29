@@ -69,8 +69,8 @@ namespace Geoid {
   void getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double_t &lon, Double_t &alt);
   Double_t getDistanceToCentreOfEarth(Double_t lat);
   
-  inline void LonLatToEastingNorthing(Double_t lon,Double_t lat,Double_t &easting,Double_t &northing);
-  inline void EastingNorthingToLonLat(Double_t easting,Double_t northing,Double_t &lon,Double_t &lat);
+  void LonLatToEastingNorthing(Double_t lon,Double_t lat,Double_t &easting,Double_t &northing);
+  void EastingNorthingToLonLat(Double_t easting,Double_t northing,Double_t &lon,Double_t &lat);
 
   /**
    * @class Position
@@ -422,52 +422,6 @@ namespace Geoid {
       fLonLatAtLastEastNorthCalc[i] = other.fLonLatAtLastEastNorthCalc[i];
     }    
   }
-
-
-
-
-
-
-  
-
-  
-  /**
-   * Convert longitude and latitude to easting and northing using the geoid model
-   *
-   * @param lon is the longitude in degrees
-   * @param lat is the latitude in degrees
-   * @param easting in meters
-   * @param northing in meters
-   */
-  void LonLatToEastingNorthing(Double_t lon,Double_t lat,Double_t &easting,Double_t &northing){
-    Double_t lon_rad = lon * TMath::DegToRad(); //convert to radians
-    Double_t lat_rad = -lat * TMath::DegToRad();
-    const double R_factor = scale_factor*c_0 * pow(( (1 + eccentricity*sin(lat_rad)) / (1 - eccentricity*sin(lat_rad)) ),eccentricity/2) * tan((TMath::Pi()/4) - lat_rad/2);
-    easting = R_factor * sin(lon_rad);///(x_max-x_min);
-    northing = R_factor * cos(lon_rad);///(y_max-y_min);
-  }
-
-  /**
-   * Convert from easting/northing to longitude and latitude
-   *
-   * @param easting in meters
-   * @param northing in meters
-   * @param lon is the longitude
-   * @param lat is the latitude
-   */
-  void EastingNorthingToLonLat(Double_t easting,Double_t northing,Double_t &lon,Double_t &lat){
-
-    double lon_rad = atan2(easting,northing);
-    lon = lon_rad * TMath::RadToDeg();
-    double R_factor = sqrt(easting*easting+northing*northing);
-    double isometric_lat = (TMath::Pi()/2) - 2*atan(R_factor/(scale_factor*c_0));
-    lat = isometric_lat + a_bar*sin(2*isometric_lat) + b_bar*sin(4*isometric_lat) + c_bar*sin(6*isometric_lat) + d_bar*sin(8*isometric_lat);
-    lat =  -lat*TMath::RadToDeg(); //convert to degrees, with -90 degrees at the south pole
-    return;
-  }
-  
-
-  
 }
 
 /** 
@@ -479,7 +433,4 @@ namespace Geoid {
  * @return the updated output string stream
  */
 std::ostream& operator<<(std::ostream& os, const TVector3& v);
-
-
-
 #endif
