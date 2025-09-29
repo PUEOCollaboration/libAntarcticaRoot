@@ -1,10 +1,9 @@
 #include "Geoid.h"
+
 #include "TMath.h"
-#include <iostream>
-
-
 #include "TClass.h"
-#include <algorithm>
+
+#include <iostream>
 
 ClassImp(Geoid::Position)
 
@@ -57,7 +56,7 @@ void Geoid::getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double
 
   // see page 71 onwards of https://web.archive.org/web/20120118224152/http://mercator.myzen.co.uk/mercator.pdf  
 
-  static Double_t cosaeSq=(1-FLATTENING_FACTOR)*(1-FLATTENING_FACTOR);
+  constexpr Double_t cosaeSq=(1-FLATTENING_FACTOR)*(1-FLATTENING_FACTOR);
   
   const Double_t lonVal   = TMath::ATan2(y,x);
   const Double_t xySq     = TMath::Sqrt(x*x+y*y);

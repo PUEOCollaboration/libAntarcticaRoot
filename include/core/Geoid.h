@@ -3,9 +3,10 @@
 
 #include "TVector3.h"
 #include "TMath.h"
-#include <iostream>
 #include "TObject.h"
 #include "TBuffer.h"
+
+#include <iostream>
 
 /**
  * @namespace Geoid
@@ -36,45 +37,38 @@ class TBuffer;
 
 namespace Geoid {
 
+  enum class Pole {North,South}; // for choosing solutions for Geoid z as a function of x,y
   /**
    * Ellipsoid Constants
    */
  // parameters of geoid model
-  static constexpr double FLATTENING_FACTOR = (1./298.257223563);
-  static constexpr double GEOID_MAX = 6.378137E6;
-  static constexpr double R_EARTH = GEOID_MAX;
-  static constexpr double GEOID_MIN = GEOID_MAX*(1 - FLATTENING_FACTOR); // parameters of geoid model
+  constexpr double FLATTENING_FACTOR = (1./298.257223563);
+  constexpr double GEOID_MAX = 6.378137E6;
+  constexpr double R_EARTH = GEOID_MAX;
+  constexpr double GEOID_MIN = GEOID_MAX*(1 - FLATTENING_FACTOR); // parameters of geoid model
+  /**
+   * Variables for conversion between polar stereographic coordinates and lat/lon.
+   * i.e. Easting/Northing from Longitude/Latitude
+   * Conversion equations from ftp://164.214.2.65/pub/gig/tm8358.2/TM8358_2.pdf  
+   */
+  constexpr double scale_factor=0.97276901289;
+  constexpr double ellipsoid_inv_f = 1./FLATTENING_FACTOR;
+  constexpr double ellipsoid_b = R_EARTH*(1-(1/ellipsoid_inv_f));
+  const double eccentricity = sqrt((1/ellipsoid_inv_f)*(2-(1/ellipsoid_inv_f)));
+  const double a_bar = pow(eccentricity,2)/2 + 5*pow(eccentricity,4)/24 + pow(eccentricity,6)/12 + 13*pow(eccentricity,8)/360;
+  const double b_bar = 7*pow(eccentricity,4)/48 + 29*pow(eccentricity,6)/240 + 811*pow(eccentricity,8)/11520;
+  const double c_bar = 7*pow(eccentricity,6)/120 + 81*pow(eccentricity,8)/1120;
+  const double d_bar = 4279*pow(eccentricity,8)/161280;
+  const double c_0 = (2*R_EARTH / sqrt(1-pow(eccentricity,2))) * pow(( (1-eccentricity) / (1+eccentricity) ),eccentricity/2);
 
-
-
-  enum class Pole {North,South}; // for choosing solutions for Geoid z as a function of x,y
-
-
-  
-
+  // namespace scoped free functions; implementation in Geoid.cxx
   Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta);
   Double_t getGeoidRadiusAtLatitude(Double_t lat);
   Double_t getGeoidRadiusAtTheta(Double_t theta);
   void getCartesianCoords(Double_t lat, Double_t lon, Double_t alt, Double_t p[3]);
   void getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double_t &lon, Double_t &alt);
   Double_t getDistanceToCentreOfEarth(Double_t lat);
-
   
-  /**
-   * Variables for conversion between polar stereographic coordinates and lat/lon.
-   * i.e. Easting/Northing from Longitude/Latitude
-   * Conversion equations from ftp://164.214.2.65/pub/gig/tm8358.2/TM8358_2.pdf  
-   */
-  static constexpr double scale_factor=0.97276901289;
-  static constexpr double ellipsoid_inv_f = 1./FLATTENING_FACTOR;
-  static constexpr double ellipsoid_b = R_EARTH*(1-(1/ellipsoid_inv_f));
-  static const double eccentricity = sqrt((1/ellipsoid_inv_f)*(2-(1/ellipsoid_inv_f)));
-  static const double a_bar = pow(eccentricity,2)/2 + 5*pow(eccentricity,4)/24 + pow(eccentricity,6)/12 + 13*pow(eccentricity,8)/360;
-  static const double b_bar = 7*pow(eccentricity,4)/48 + 29*pow(eccentricity,6)/240 + 811*pow(eccentricity,8)/11520;
-  static const double c_bar = 7*pow(eccentricity,6)/120 + 81*pow(eccentricity,8)/1120;
-  static const double d_bar = 4279*pow(eccentricity,8)/161280;
-  static const double c_0 = (2*R_EARTH / sqrt(1-pow(eccentricity,2))) * pow(( (1-eccentricity) / (1+eccentricity) ),eccentricity/2);
-
   inline void LonLatToEastingNorthing(Double_t lon,Double_t lat,Double_t &easting,Double_t &northing);
   inline void EastingNorthingToLonLat(Double_t easting,Double_t northing,Double_t &lon,Double_t &lat);
 
