@@ -27,7 +27,7 @@ if(USE_GEOGRAPHIC_LIB)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
-option(MINIMALLY_INCLUDE "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" ON)
+option(MINIMALLY_INCLUDE "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" OFF)
 
 #================================================================================================
 #                                       BUILDING
