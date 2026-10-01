@@ -938,7 +938,7 @@ TProfile2D* RampdemReader::fillThisHist(TProfile2D* theHist, RampdemReader::data
 
     // Double_t xMax = maxXs[dataSet];
     // Double_t yMax = maxYs[dataSet];
-    Double_t noData = noDatas[dataSet];
+    Int_t noData = noDatas[dataSet];
 
     if(dataSet==RampdemReader::rampdem){
       for(UInt_t yBin=0; yBin < data.at(0).size(); yBin++){
