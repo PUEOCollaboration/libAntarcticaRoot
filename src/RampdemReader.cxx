@@ -15,7 +15,7 @@
 typedef std::vector<std::vector<short> > VecVec;
 typedef std::map<RampdemReader::dataSet, VecVec > DataMap;
 static DataMap bedMap2Data;
-typedef std::map<RampdemReader::dataSet, Double_t> HeaderMap;
+typedef std::map<RampdemReader::dataSet, Int_t> HeaderMap;
 
 static HeaderMap numXs;
 static HeaderMap numYs;
