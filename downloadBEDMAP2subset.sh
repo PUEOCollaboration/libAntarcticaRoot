@@ -4,7 +4,7 @@
 # Because we only need a subset of the data, and the compressed data set is fairly large and only used in plotting,
 # this installation is optional and not forced by anitaBuildTool.
 
-# You can install the files manually by making sure the files, e.g. bedmap_bed.flt end up in $PUEO_UTIL_INSTALL_DIR/share/anitaCalib/bedmap2_bin/
+# You can install the files manually by making sure the files, e.g. bedmap_bed.flt end up in $PUEO_UTIL_INSTALL_DIR/share/pueoCalib/bedmap2_bin/
 # This is the recommended way of getting them on the ice... let's hope someone brought them with them!
 
 calibDir=$PUEO_UTIL_INSTALL_DIR/share/pueoCalib

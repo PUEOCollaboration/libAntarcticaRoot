@@ -277,7 +277,7 @@ int RampdemReader::readRAMPDEM(){
       sprintf(calibDir,"calib");
     }
     else{
-      sprintf(calibDir,"%s/share/anitaCalib",utilEnv);
+      sprintf(calibDir,"%s/share/pueoalib",utilEnv);
     }
   }
   else {
@@ -826,7 +826,7 @@ static const VecVec& getDataIfNeeded(RampdemReader::dataSet dataSet){
     // Start with the anita install directory...
     std::string fileName(anitaUtilInstallDir);
     // ... append the calib subdir
-    fileName.append("/share/anitaCalib/bedmap2_bin/bedmap2_");
+    fileName.append("/share/pueoCalib/bedmap2_bin/bedmap2_");
 
     // append the appropriate filename
     const char* dataName = dataSetToString(dataSet);

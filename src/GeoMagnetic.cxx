@@ -103,7 +103,7 @@ void getGaussCoefficients(){
   if(!anitaUtilInstallDir){
     std::cerr << "Warning in " << __FILE__ << ", PUEO_UTIL_INSTALL_DIR not set" << std::endl;
   }
-  TString fileName = TString::Format("%s/share/anitaCalib/igrf12coeffs.txt", anitaUtilInstallDir);
+  TString fileName = TString::Format("%s/share/pueoCalib/igrf12coeffs.txt", anitaUtilInstallDir);
   std::ifstream coeffs(fileName);
 
   if(!coeffs.good()){
