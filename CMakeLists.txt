@@ -19,7 +19,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF) # turns -st
 #                                       OPTIONS
 #================================================================================================
 
-option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" OFF)
+option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" ON)
 # note: For Fedora Linux users, run `dnf install GeographicLib-devel` first
 if(USE_GEOGRAPHIC_LIB)
   find_package(GeographicLib REQUIRED)
@@ -123,6 +123,45 @@ install(
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
+
+string(ASCII 27 Esc)
+set(ColourReset "${Esc}[m")
+set(BoldRed     "${Esc}[1;31m")
+set(BoldGreen   "${Esc}[1;32m")
+# functionally the same as downloadBEDMAP2subset.sh
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data/bedmap2_bin/")
+
+  message(STATUS "${BoldGreen}Downloading Bedmap2...${ColourReset}")
+  make_directory("${CMAKE_CURRENT_SOURCE_DIR}/data/bedmap2_bin/")
+
+  file(DOWNLOAD
+    "https://pueo.uchicago.edu/data/pueo/pueo-data-binary/bedmap2_bin.tar.gz"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+    SHOW_PROGRESS
+    STATUS download_status
+  )
+
+  if(download_status EQUAL 0)
+    message(STATUS "${BoldGreen}Bedmap2 downloaded successfully${ColourReset}")
+  else()
+    message(FATAL_ERROR "${BoldRed}Bedmap2 download failed${ColourReset}")
+  endif()
+
+  message(STATUS "${BoldGreen}Extracting...${ColourReset}")
+  file(ARCHIVE_EXTRACT
+    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+    DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/data/"
+    VERBOSE
+  )
+
+  message(STATUS "${BoldGreen}Removing tarball...${ColourReset}")
+  file(REMOVE
+    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+  )
+
+endif()
+
+
 # installing datafiles (ie. stuff in data/)
-install(DIRECTORY data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/anitaCalib)
+install(DIRECTORY data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/pueoCalib)
     # note: trailing "/" is important here

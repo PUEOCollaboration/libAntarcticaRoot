@@ -681,10 +681,12 @@ PayloadParameters::PayloadParameters(const AntarcticCoord &  payload_pos, const 
 
 #else
 
-  //vector from source to paylaod
+  //vector from payload to source
   TVector3 v = (s-p); 
-  //angle between v and p gives zenith angle. elevation is - 90. 
+  // Angle between v and p gives zenith angle (assuming that the payload is pointing up locally)
+  // Elevation is zenith - 90 if positive elevation is "down"
   source_theta = p.Angle(v) * TMath::RadToDeg() - 90; 
+  // note that the sign convention of payload_el is the opposite of that of source_theta
   payload_el =  s.Angle(v) * TMath::RadToDeg() - 90; 
   //To get phi, we have to solve the inverse geodesic problem 
   AntarcticCoord swgs84 = source.as(AntarcticCoord::WGS84); 
@@ -790,7 +792,6 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const Ant
     return 0; 
   }
 
-  AntarcticCoord x = payload.as(AntarcticCoord::CARTESIAN); 
   AntarcticCoord wgs84 = payload.as(AntarcticCoord::WGS84); 
 
 
@@ -861,6 +862,7 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const Ant
 
   /* This doesn't work yet 
   //use great ellipse 
+  AntarcticCoord x = payload.as(AntarcticCoord::CARTESIAN); 
 
   //Find vector normal to our plane, use 0,0,0 as our point
   TVector3 d = (x.x,x.y,0); //north pointing vector
