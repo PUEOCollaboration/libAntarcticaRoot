@@ -75,6 +75,9 @@ namespace Geoid {
    * Variables for conversion between polar stereographic coordinates and lat/lon.
    * i.e. Easting/Northing from Longitude/Latitude
    * Conversion equations from ftp://164.214.2.65/pub/gig/tm8358.2/TM8358_2.pdf  
+   * Oct 2 2026: now uploaded to PUEO's docdb at https://pueo.uchicago.edu/DocDB/0007/000735/001/tm8358_2.pdf
+   * Title: THE UNIVERSAL GRIDS: Universal Transverse Merator (UTM) and Universal Polar Stereographi (UPS)
+   * Defense Mapping Agency TM 8358.2
    */
   static constexpr double scale_factor=0.97276901289;
   static constexpr double ellipsoid_inv_f = 1./FLATTENING_FACTOR;
