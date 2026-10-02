@@ -44,8 +44,8 @@ public:
     icemask_grounded_and_shelves,
     // lakemask_vostok,
     // rockmask,
-    surface,
-    thickness,
+    surface, // from data/bedmap2_bin/bedmap2_surface
+    thickness, // from data/bedmap2_bin/bedmap2_thickness
     // bedmap2_thickness_uncertainty_5km
   } dataSet;
 
