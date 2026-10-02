@@ -36,6 +36,12 @@ public:
   // OK, these files are enormous! There's no way I'm committing them all to github
   // Originals are from here: https://secure.antarctica.ac.uk/data/bedmap2/
   // Feel free to download the rest if you want all the other fancy ones
+  // bedmap 2 data repository: https://ramadda.data.bas.ac.uk/repository/entry/show?entryid=fa5d606c-dc95-47ee-9016-7a82e446f2f2
+  // - bedmap2_surface           Elevation if standing on ice
+  // - bedmap2_thickness         Thickness of ice
+  // - gl04c_geiod_to_WGS84      Corrections between gl04c and WGS84 ellipsoid
+  // Note: both bedmap2 and 3 use the gl04c geoid, not the wgs84 ellipsoid
+  // bedmap 3 data repository: https://ramadda.data.bas.ac.uk/repository/entry/show?entryid=2d0e4791-8e20-46a3-80e4-f5f6716025d2
   typedef enum{
     rampdem, // this is the old data in surfaceElevation.asc (a 6MB file), this is included by default.
     bed,
