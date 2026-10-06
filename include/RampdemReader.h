@@ -41,7 +41,10 @@ public:
   // - bedmap2_thickness         Thickness of ice
   // - gl04c_geiod_to_WGS84      Corrections between gl04c and WGS84 ellipsoid
   // Note: both bedmap2 and 3 use the gl04c geoid, not the wgs84 ellipsoid
-  // bedmap 3 data repository: https://ramadda.data.bas.ac.uk/repository/entry/show?entryid=2d0e4791-8e20-46a3-80e4-f5f6716025d2
+  // bedmap 3 data repository website:
+  // https://data-search.nerc.ac.uk/geonetwork/srv/eng/catalog.search#/metadata/2d0e4791-8e20-46a3-80e4-f5f6716025d2
+  // or
+  // https://data-search.nerc.ac.uk/geonetwork/srv/eng/catalog.search#/metadata/91523ff9-d621-46b3-87f7-ffb6efcd1847
   typedef enum{
     rampdem, // this is the old data in surfaceElevation.asc (a 6MB file), this is included by default.
     bed,
