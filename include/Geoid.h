@@ -11,7 +11,10 @@
  * @namespace Geoid
  * @brief Get positions, radii, latitudes, longitudes, and other goodies when modelling the Earth
  * 
+ * A note on the name: this is actually a WGS84 ellipsoid instead of a geoid.
+ *
  * A note on Cartesian coordinates: We don't use the WGS84 convention!
+ * (but this shouldn't affect easting/northing <-> lon/lat conversion)
  * 
  * The cartesian coordinate system in WGS84 has:
  * The origin at the center of mass of the Earth.
@@ -61,13 +64,21 @@ namespace Geoid {
   }
 
 
-  
-
+  /**
+   * This function really should be more approriately named as getEllipsoidRadiusAtCosTheta().
+   * It returns the GEOCENTRIC radius (from ellipsoid center to surface) given cos(theta),
+   * where theta is the GEOCENTRIC colatitude (think zenith angle), in RADIANS.
+   * Note: so theta is NOT the geodetic latitude in functions LonLatToEastingNorthing() and EastingNorthingToLonLat().
+   *
+   * The computation is simply the standard ellipsoid raidus formula
+   */
   inline Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta);
   Double_t getGeoidRadiusAtLatitude(Double_t lat);
   inline Double_t getGeoidRadiusAtTheta(Double_t theta);
   void getCartesianCoords(Double_t lat, Double_t lon, Double_t alt, Double_t p[3]);
   void getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double_t &lon, Double_t &alt);
+
+  // todo: this is probably exacly the same as getGeoidRadiusAtLatitude()
   Double_t getDistanceToCentreOfEarth(Double_t lat);
 
   
