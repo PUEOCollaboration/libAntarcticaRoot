@@ -88,6 +88,7 @@ static const double a = 6378137;
 static const double b = 6356752.31424518; 
 static const double binv = 1./6356752.31424518; 
 static const double e = sqrt((a*a-b*b)/(a*a)); 
+// e_primed: second eccentricity
 static const double ep = e * a/b; 
 
 
@@ -96,11 +97,14 @@ static void cart2stereo(double *x, double * y, double *z)
    //Turns out this is an important conversion for performance. Will hackily put it in right here.
    //I'm using a slightly different conversion from cartesian to WGS84, and also avoiding all trig functions, which just cause havoc. 
    // This is based on  http://www.microem.ru/pages/u_blox/tech/dataconvert/GPS.G1-X-00006.pdf
+  // Oct 6, 2026: Link is dead. Try the links in [this thread](https://gis.stackexchange.com/questions/20714/characteristics-of-different-methods-to-convert-ecef-to-lla)
+  // also uploaded to PUEO's docdb at https://pueo.uchicago.edu/DocDB/cgi-bin/ShowDocument?docid=735
 
    double X = *y; //silly 
    double Y = *x; //silly 
    double Z = *z;  
 
+   // H for hypotenuse, I guess. H is called "p" in the in the GPS.G1-X-00006 document, page 4
    double H = sqrt(X*X+Y*Y); 
    double Hinv = 1./H; 
 
@@ -115,13 +119,16 @@ static void cart2stereo(double *x, double * y, double *z)
    double num = Z + (ep *ep*b) * (sin_theta * sin_theta * sin_theta); 
    double denom = H - (e *e*a) * (cos_theta * cos_theta * cos_theta); 
 
+   // H2: another "hypotenuse" -- think of the numerator and denominator above as two sides of a triangle
    double H2inv = pow(num*num + denom*denom,-0.5); 
    double sin_lat =  num * H2inv * ( (denom > 0) - ( denom < 0) ); //do I need this sign change here? I suspect denom is always well greater than zero... 
    double cos_lat =  denom / num * sin_lat; 
 
 
+   // radius of curvature at some GEODETIC latitude 
    double N = a * pow(1. - (e*e) * sin_lat * sin_lat,-0.5); 
 
+   // output z (ie altitude above ellipsoid, called "h" document)
    *z = H / cos_lat - N; 
 
    ///ok now, we have to go to stereographic. We already reversed the sign of latitude
@@ -133,7 +140,9 @@ static void cart2stereo(double *x, double * y, double *z)
    double tan_lat_over_2 = sin_lat / (1 + cos_lat); 
    R *= (1 - tan_lat_over_2) / (1 + tan_lat_over_2); 
 
+   // output easting
    *x = R * sin_lon; 
+   // output northing
    *y = R * cos_lon; 
 
 }
