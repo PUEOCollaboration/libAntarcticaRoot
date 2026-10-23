@@ -5,20 +5,21 @@ add_library(${PROJECT_NAME} SHARED)
 #================================================================================================
 #                                       HOUSEKEEPING
 #================================================================================================
-include(GNUInstallDirs)
+
 if(NOT CMAKE_BUILD_TYPE) 
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "" FORCE) 
 endif()
 
 find_package(RootFftwWrapper CONFIG REQUIRED)
 find_package(ROOT CONFIG REQUIRED COMPONENTS HistPainter Physics Ged)
+find_package(ZLIB REQUIRED) # TODO: figure out if zlib is required
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF) # turns -std=gnu++17 -> -std=c++17
 #================================================================================================
 #                                       OPTIONS
 #================================================================================================
 
-option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" OFF)
+option(USE_GEOGRAPHIC_LIB "Use GeographicLib for geodesic calculations" ON)
 # note: For Fedora Linux users, run `dnf install GeographicLib-devel` first
 if(USE_GEOGRAPHIC_LIB)
   find_package(GeographicLib REQUIRED)
@@ -26,19 +27,61 @@ if(USE_GEOGRAPHIC_LIB)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${GeographicLib_LIBRARIES} )
 endif()
 
-option(CORE_ONLY "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" OFF)
+option(MINIMALLY_INCLUDE "Compile only Geoid and RampdemReader (the only ones used by NiceMC)" OFF)
 
 #================================================================================================
 #                                       BUILDING
 #================================================================================================
-add_subdirectory(include)
-add_subdirectory(src)
+
+list(APPEND HEADER_FILES include/Geoid.h include/RampdemReader.h)
+
+target_sources(${PROJECT_NAME} PRIVATE src/Geoid.cxx src/RampdemReader.cxx)
+
+if(NOT MINIMALLY_INCLUDE)
+  list(APPEND HEADER_FILES
+    include/AntarcticAtmosphere.h
+    include/AntarcticaBackground.h
+    include/AntarcticaGeometry.h
+    include/BaseList.h
+    include/GeoMagnetic.h
+    include/RefractionModel.h
+    include/SkyMap.h
+    include/TArrowAntarctica.h
+    include/TGraphAntarctica.h
+    include/TH2DAntarctica.h
+  )
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    src/AntarcticaAtmosphere.cxx
+    src/AntarcticaBackground.cxx
+    src/AntarcticaGeometry.cxx
+    src/BaseList.cxx
+    src/GeoMagnetic.cxx
+    src/RefractionModel.cxx
+    src/SkyMap.cxx
+    src/TArrowAntarctica.cxx
+    src/TGraphAntarctica.cxx
+    src/TH2DAntarctica.cxx
+  )
+endif()
+
+target_sources(${PROJECT_NAME} PUBLIC
+  FILE_SET HEADERS
+  BASE_DIRS include     # <-- Everything in BASE_DIRS is available during the build
+  FILES ${HEADER_FILES} # <-- But only FILES will be installed
+)
 
 # use warning flags in RelWithDebInfo mode, which is set to be the default mode
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:RelWithDebInfo>:-Wall -Wextra>)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
-                                              ROOT::HistPainter ROOT::Ged ROOT::Physics)
+target_link_libraries(${PROJECT_NAME} PUBLIC  
+  RootFftwWrapper::RootFftwWrapper ROOT::HistPainter ROOT::Ged ROOT::Physics)
+
+# add_executable(test_rampdem ${CMAKE_CURRENT_SOURCE_DIR}/test/rampdemReader_test.C)
+# target_link_libraries(test_rampdem ${PROJECT_NAME})
+
+set(DICTNAME G__${PROJECT_NAME})
+root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
 
 #================================================================================================
 #                                       INSTALLING
@@ -53,6 +96,7 @@ write_basic_package_version_file(
 )
 
 # Install the config file generated above and the Config file in the cmake/ directory
+include(GNUInstallDirs)
 install(FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
@@ -64,7 +108,13 @@ install(
   TARGETS ${PROJECT_NAME} 
   EXPORT ${PROJECT_NAME}Targets 
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION lib # force to lib, instead of letting the system decide b/w lib vs lib64
+)
+
+# installing CERN ROOT's _rdict.pcm file
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_rdict.pcm"
+  DESTINATION lib
 )
 
 # Generate a Targets.cmake file and directly install it
@@ -75,6 +125,46 @@ install(
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
+
+string(ASCII 27 Esc)
+set(ColourReset "${Esc}[m")
+set(BoldRed     "${Esc}[1;31m")
+set(BoldGreen   "${Esc}[1;32m")
+# functionally the same as downloadBEDMAP2subset.sh
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/data/bedmap2_bin/")
+
+  message(STATUS "${BoldGreen}Downloading Bedmap2...${ColourReset}")
+  make_directory("${CMAKE_CURRENT_SOURCE_DIR}/data/bedmap2_bin/")
+
+  file(DOWNLOAD
+    "https://pueo.uchicago.edu/data/pueo/pueo-data-binary/bedmap2_bin.tar.gz"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+    SHOW_PROGRESS
+    STATUS download_status
+  )
+
+  if(download_status EQUAL 0)
+    message(STATUS "${BoldGreen}Bedmap2 downloaded successfully${ColourReset}")
+  else()
+    message(FATAL_ERROR "${BoldRed}Bedmap2 download failed${ColourReset}")
+  endif()
+
+  message(STATUS "${BoldGreen}Extracting...${ColourReset}")
+  file(ARCHIVE_EXTRACT
+    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+    DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/data/"
+    VERBOSE
+  )
+
+  message(STATUS "${BoldGreen}Removing tarball...${ColourReset}")
+  file(REMOVE
+    INPUT "${CMAKE_CURRENT_SOURCE_DIR}/bedmap2_bin.tar.gz"
+  )
+
+endif()
+
+
 # installing datafiles (ie. stuff in data/)
-install(DIRECTORY data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/anitaCalib)
+install(DIRECTORY data/ DESTINATION ${CMAKE_INSTALL_DATADIR}/pueoCalib)
     # note: trailing "/" is important here
+
