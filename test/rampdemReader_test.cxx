@@ -1,7 +1,7 @@
 #include "RampdemReader.h"
 #include "TCanvas.h"
 
-int main(){
+void rampdemReader_test(){
   TProfile2D* myMap = RampdemReader::getMap(RampdemReader::surface, 4);
 
   TCanvas c1("","", 1920, 1080);
@@ -9,6 +9,8 @@ int main(){
   c1.SaveAs("foo.pdf");
 
 
+}
 
-  return 0;
+int main(){
+  rampdemReader_test();
 }
