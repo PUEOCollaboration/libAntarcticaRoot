@@ -11,7 +11,10 @@
  * @namespace Geoid
  * @brief Get positions, radii, latitudes, longitudes, and other goodies when modelling the Earth
  * 
+ * A note on the name: this is actually a WGS84 ellipsoid instead of a geoid.
+ *
  * A note on Cartesian coordinates: We don't use the WGS84 convention!
+ * (but this shouldn't affect easting/northing <-> lon/lat conversion)
  * 
  * The cartesian coordinate system in WGS84 has:
  * The origin at the center of mass of the Earth.
@@ -61,13 +64,21 @@ namespace Geoid {
   }
 
 
-  
-
+  /**
+   * This function really should be more approriately named as getEllipsoidRadiusAtCosTheta().
+   * It returns the GEOCENTRIC radius (from ellipsoid center to surface) given cos(theta),
+   * where theta is the GEOCENTRIC colatitude (think zenith angle), in RADIANS.
+   * Note: so theta is NOT the geodetic latitude in functions LonLatToEastingNorthing() and EastingNorthingToLonLat().
+   *
+   * The computation is simply the standard ellipsoid raidus formula
+   */
   inline Double_t getGeoidRadiusAtCosTheta(Double_t cosTheta);
   Double_t getGeoidRadiusAtLatitude(Double_t lat);
   inline Double_t getGeoidRadiusAtTheta(Double_t theta);
   void getCartesianCoords(Double_t lat, Double_t lon, Double_t alt, Double_t p[3]);
   void getLatLonAltFromCartesian(const Double_t p[3], Double_t &lat, Double_t &lon, Double_t &alt);
+
+  // todo: this is probably exacly the same as getGeoidRadiusAtLatitude()
   Double_t getDistanceToCentreOfEarth(Double_t lat);
 
   
@@ -75,11 +86,16 @@ namespace Geoid {
    * Variables for conversion between polar stereographic coordinates and lat/lon.
    * i.e. Easting/Northing from Longitude/Latitude
    * Conversion equations from ftp://164.214.2.65/pub/gig/tm8358.2/TM8358_2.pdf  
+   * Oct 2 2026: now uploaded to PUEO's docdb at https://pueo.uchicago.edu/DocDB/cgi-bin/ShowDocument?docid=735
+   * Title: THE UNIVERSAL GRIDS: Universal Transverse Merator (UTM) and Universal Polar Stereographi (UPS)
+   * Defense Mapping Agency TM 8358.2
+   *
+   * For scale_factor see EPSG Guidance Note 7-2 page 85 (also on DocDB)
    */
-  static constexpr double scale_factor=0.97276901289;
-  static constexpr double ellipsoid_inv_f = 1./FLATTENING_FACTOR;
-  static constexpr double ellipsoid_b = R_EARTH*(1-(1/ellipsoid_inv_f));
-  static const double eccentricity = sqrt((1/ellipsoid_inv_f)*(2-(1/ellipsoid_inv_f)));
+  static constexpr double scale_factor=0.97276901289;  // scale factor at natural origin, aka k_0
+  // static constexpr double ellipsoid_inv_f = 1./FLATTENING_FACTOR;
+  // static constexpr double ellipsoid_b = R_EARTH*(1-(1/ellipsoid_inv_f));
+  static const double eccentricity = sqrt(FLATTENING_FACTOR*(2-FLATTENING_FACTOR));
   static const double a_bar = pow(eccentricity,2)/2 + 5*pow(eccentricity,4)/24 + pow(eccentricity,6)/12 + 13*pow(eccentricity,8)/360;
   static const double b_bar = 7*pow(eccentricity,4)/48 + 29*pow(eccentricity,6)/240 + 811*pow(eccentricity,8)/11520;
   static const double c_bar = 7*pow(eccentricity,6)/120 + 81*pow(eccentricity,8)/1120;
@@ -482,6 +498,8 @@ namespace Geoid {
     double lon_rad = atan2(easting,northing);
     lon = lon_rad * TMath::RadToDeg();
     double R_factor = sqrt(easting*easting+northing*northing);
+    // this R_factor computation is only true when FN and False Easting (FE) are 0,
+    // which is the case for EPSG 3031 (Antarctic Polar Stereographic)
     double isometric_lat = (TMath::Pi()/2) - 2*atan(R_factor/(scale_factor*c_0));
     lat = isometric_lat + a_bar*sin(2*isometric_lat) + b_bar*sin(4*isometric_lat) + c_bar*sin(6*isometric_lat) + d_bar*sin(8*isometric_lat);
     lat =  -lat*TMath::RadToDeg(); //convert to degrees, with -90 degrees at the south pole

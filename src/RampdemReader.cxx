@@ -814,99 +814,98 @@ static const VecVec& getDataIfNeeded(RampdemReader::dataSet dataSet){
     return data;
   }
 
+  if(data.size() != 0){return data;}
 
-  if(data.size() == 0){
-    const char* anitaEnv = "PUEO_UTIL_INSTALL_DIR";
-    const char* anitaUtilInstallDir = getenv(anitaEnv);
-    if(anitaUtilInstallDir==NULL){
-      std::cerr << "Error in " << __FILE__ << ", could not find environment variable " << anitaEnv << std::endl;
+  const char* anitaEnv = "PUEO_UTIL_INSTALL_DIR";
+  const char* anitaUtilInstallDir = getenv(anitaEnv);
+  if(anitaUtilInstallDir==NULL){
+    std::cerr << "Error in " << __FILE__ << ", could not find environment variable " << anitaEnv << std::endl;
+  }
+
+
+  // Start with the anita install directory...
+  std::string fileName(anitaUtilInstallDir);
+  // ... append the calib subdir
+  fileName.append("/share/pueoCalib/bedmap2_bin/bedmap2_");
+
+  // append the appropriate filename
+  const char* dataName = dataSetToString(dataSet);
+  fileName.append(dataName);
+
+  // Header file suffix
+  std::string headName = fileName;
+  headName.append(".hdr");
+
+
+  // Open header file
+  std::ifstream header(headName.c_str());
+  if(!header.is_open()){
+    std::cerr << "Error! Unable to open file " << headName << std::endl;
+    std::cerr << "The BEDMAP2 data set is large and not bundled with anitaEventCorrelator by default." << std::endl;
+    std::cerr << "To download the BEDMAP2 data set and have it installed in the proper place, run the script anitaEventCorrelator/downloadBEDMAP2subset.sh" << std::endl;
+    std::cerr << "If you have a slow internet connection, beware, the total size of the files is ~50MB." << std::endl;
+    std::cerr << "See https://github.com/anitaNeutrino/subsetOfBedmap2Data for more information." << std::endl;
+    return data;
+  }
+
+
+  // Parse and store variables
+  do{
+    std::string key, value;
+    header >> key >> value;
+
+    // Think these are all we care about...
+    if(key=="ncols"){
+      numXs[dataSet] = atoi(value.c_str());
     }
-
-
-    // Start with the anita install directory...
-    std::string fileName(anitaUtilInstallDir);
-    // ... append the calib subdir
-    fileName.append("/share/pueoCalib/bedmap2_bin/bedmap2_");
-
-    // append the appropriate filename
-    const char* dataName = dataSetToString(dataSet);
-    fileName.append(dataName);
-
-    // Header file suffix
-    std::string headName = fileName;
-    headName.append(".hdr");
-
-
-    // Open header file
-    std::ifstream header(headName.c_str());
-    if(!header.is_open()){
-      std::cerr << "Error! Unable to open file " << headName << std::endl;
-      std::cerr << "The BEDMAP2 data set is large and not bundled with anitaEventCorrelator by default." << std::endl;
-      std::cerr << "To download the BEDMAP2 data set and have it installed in the proper place, run the script anitaEventCorrelator/downloadBEDMAP2subset.sh" << std::endl;
-      std::cerr << "If you have a slow internet connection, beware, the total size of the files is ~50MB." << std::endl;
-      std::cerr << "See https://github.com/anitaNeutrino/subsetOfBedmap2Data for more information." << std::endl;
+    else if(key=="nrows"){
+      numYs[dataSet] = atoi(value.c_str());
     }
-    else{
-
-      // Parse and store variables
-      do{
-	std::string key, value;
-	header >> key >> value;
-
-	// Think these are all we care about...
-	if(key=="ncols"){
-	  numXs[dataSet] = atoi(value.c_str());
-	}
-	else if(key=="nrows"){
-	  numYs[dataSet] = atoi(value.c_str());
-	}
-	else if(key=="NODATA_value"){
-	  noDatas[dataSet] = atoi(value.c_str());
-	}
-	else if(key=="xllcorner"){
-	  minXs[dataSet]= atoi(value.c_str());
-	}
-	else if(key=="yllcorner"){
-	  minYs[dataSet] = atoi(value.c_str());
-	}
-	else if(key=="cellsize"){
-	  cellSizes[dataSet] = atoi(value.c_str());
-	}
-	// std::cout << key << "\t" << value << "\t" << header.eof() << std::endl;
-      } while(!header.eof());
+    else if(key=="NODATA_value"){
+      noDatas[dataSet] = atoi(value.c_str());
+    }
+    else if(key=="xllcorner"){
+      minXs[dataSet]= atoi(value.c_str());
+    }
+    else if(key=="yllcorner"){
+      minYs[dataSet] = atoi(value.c_str());
+    }
+    else if(key=="cellsize"){
+      cellSizes[dataSet] = atoi(value.c_str());
+    }
+    // std::cout << key << "\t" << value << "\t" << header.eof() << std::endl;
+  } while(!header.eof());
 
 
-      // Calculate other edge points.
-      maxXs[dataSet] = minXs[dataSet] + numXs[dataSet]*cellSizes[dataSet];
-      maxYs[dataSet] = minYs[dataSet] + numYs[dataSet]*cellSizes[dataSet];
+  // Calculate other edge points.
+  maxXs[dataSet] = minXs[dataSet] + numXs[dataSet]*cellSizes[dataSet];
+  maxYs[dataSet] = minYs[dataSet] + numYs[dataSet]*cellSizes[dataSet];
 
-      // Now get data file...
-      fileName.append(".flt");
-      FILE* fBedMap2 = fopen(fileName.c_str(), "r");
-      if(fBedMap2==NULL){
-	std::cerr << "Error in " << __FILE__ << ", could not open file " << fileName << std::endl;
-      }
-      else{
-	// int nCols = bedMap2Headers[HeaderKey(dataSet, "nrows")];
-	// int nRows = bedMap2Headers[HeaderKey(dataSet, "ncols")];
+  // Now get data file...
+  fileName.append(".flt");
+  FILE* fBedMap2 = fopen(fileName.c_str(), "r");
+  if(fBedMap2==NULL){
+    std::cerr << "Error in " << __FILE__ << ", could not open file " << fileName << std::endl;
+  }
+  else{
+    // int nCols = bedMap2Headers[HeaderKey(dataSet, "nrows")];
+    // int nRows = bedMap2Headers[HeaderKey(dataSet, "ncols")];
 
-	const int numX = numXs[dataSet];
-	const int numY = numYs[dataSet];
+    const int numX = numXs[dataSet];
+    const int numY = numYs[dataSet];
 
-	std::vector<float> tempData(numX, 0);
+    std::vector<float> tempData(numX, 0);
 
-	for(int y=0; y < numY; y++){
-	  fread(&tempData[0], sizeof(float), numX, fBedMap2);
-	  data.push_back(std::vector<short>(numX, 0));
+    for(int y=0; y < numY; y++){
+      fread(&tempData[0], sizeof(float), numX, fBedMap2);
+      data.push_back(std::vector<short>(numX, 0));
 
-	  for(int x = 0; x < numX; x++){
-	    data.at(y).at(x) = short(tempData.at(x));
-	  }
-	}
-
-	fclose(fBedMap2);
+      for(int x = 0; x < numX; x++){
+        data.at(y).at(x) = short(tempData.at(x));
       }
     }
+
+    fclose(fBedMap2);
   }
   return data;
 }
@@ -939,7 +938,7 @@ TProfile2D* RampdemReader::fillThisHist(TProfile2D* theHist, RampdemReader::data
 
     // Double_t xMax = maxXs[dataSet];
     // Double_t yMax = maxYs[dataSet];
-    Double_t noData = noDatas[dataSet];
+    Int_t noData = noDatas[dataSet];
 
     if(dataSet==RampdemReader::rampdem){
       for(UInt_t yBin=0; yBin < data.at(0).size(); yBin++){
