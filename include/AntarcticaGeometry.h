@@ -86,7 +86,7 @@ class CartesianSurfaceMap
 {
 
   public: 
-    CartesianSurfaceMap( double resolution = 1e3, RampdemReader::dataSet d = RampdemReader::rampdem); 
+    CartesianSurfaceMap( double resolution = 1e3, RampdemReader::dataSet d = RampdemReader::surface); 
     ~CartesianSurfaceMap() { map->Delete(); } 
     double surface(double x, double y) const; 
     double z(double x, double y) const; 
@@ -172,7 +172,7 @@ class AntarcticSegmentationScheme {
     virtual void setRampdemDataset( RampdemReader::dataSet d)  { dataset = d; } 
 
   protected: 
-    AntarcticSegmentationScheme() :  dataset (RampdemReader::rampdem) { ;} 
+    AntarcticSegmentationScheme() :  dataset (RampdemReader::surface) { ;} 
     RampdemReader::dataSet dataset; 
 
     ClassDef(AntarcticSegmentationScheme,1); 
@@ -243,7 +243,7 @@ class PayloadParameters
     double apparent_payload_el; // The APPARENT source theta (without refraction correction)
 
     /* Checks for collision with the ground */
-    bool checkForCollision(double dx = 100, AntarcticCoord * where = 0, AntarcticCoord * where_exit = 0, RampdemReader::dataSet d = RampdemReader::rampdem, double grace = 20, bool reverse = false) const;
+    bool checkForCollision(double dx = 100, AntarcticCoord * where = 0, AntarcticCoord * where_exit = 0, RampdemReader::dataSet d = RampdemReader::surface, double grace = 20, bool reverse = false) const;
 
     AntarcticCoord payload; 
     AntarcticCoord source; 
@@ -256,7 +256,7 @@ class PayloadParameters
      * Returns 1 on success, 0 if over horizon (but fills in payload position with the point at the horizon), -1 if doesn't converge to tolerance (but fills in closest) 
      *
      */
-    static double getHorizon(double phi, const AntarcticCoord & payload_pos, const PayloadAttitude & attitude = PayloadAttitude(), const Refraction::Model * refractionModel = 0, double tol = 5e-6, RampdemReader::dataSet rampdemData= RampdemReader::rampdem);
+    static double getHorizon(double phi, const AntarcticCoord & payload_pos, const PayloadAttitude & attitude = PayloadAttitude(), const Refraction::Model * refractionModel = 0, double tol = 5e-6, RampdemReader::dataSet rampdemData= RampdemReader::surface);
 
     static int findSourceOnContinent(double theta, double phi,
                           const AntarcticCoord & payload_pos, PayloadParameters * fillme, 
@@ -266,7 +266,7 @@ class PayloadParameters
                           double min_dx = 5,
                           double tol = 5e-6, 
                           double min_el  = 0,
-                          RampdemReader::dataSet d= RampdemReader::rampdem); 
+                          RampdemReader::dataSet d= RampdemReader::surface); 
 
   private: 
 
