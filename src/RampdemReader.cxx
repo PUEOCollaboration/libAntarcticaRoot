@@ -277,7 +277,7 @@ int RampdemReader::readRAMPDEM(){
       sprintf(calibDir,"calib");
     }
     else{
-      sprintf(calibDir,"%s/share/pueoalib",utilEnv);
+      sprintf(calibDir,"%s/share/pueoCalib",utilEnv);
     }
   }
   else {
