@@ -798,6 +798,7 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const Ant
   //no chance. 
   if (theta < 0 ) 
   {
+    std::cerr << "\033[1;31mNo chance in hell (elevation angle points to the sky).\033[0m\n";
     return 0; 
   }
 
@@ -817,6 +818,7 @@ int PayloadParameters::findSourceOnContinent(double theta, double phi, const Ant
     double lat, lon; 
     gl.Position(i * step, lat, lon); 
     AntarcticCoord c(AntarcticCoord::WGS84, lat, lon, RampdemReader::SurfaceAboveGeoid(lon,lat,d)); 
+    // std::cout << "loop: " << loopCount << " lat: " << c.x << " lon: " << c.y << " alt: " << c.z << "\n";
     *p = PayloadParameters(payload, c, att,  m); 
 
     //printf("%f::%f %f::%f::  %g   %f\n", phi, p->source_phi, theta, p->source_theta, p->payload_el, i * step); 
