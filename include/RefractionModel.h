@@ -159,7 +159,10 @@ namespace Refraction
       const AntarcticAtmosphere::AtmosphericModel * atm; 
       double step;
       bool use_cache; 
-      mutable TMutex cache_lock; 
+
+      // The following error arises whenever we write the object to disk.
+      // Error <TVirtualMutex::Streamer>: version id <=0 in ClassDef, dummy Streamer() called
+      mutable TMutex cache_lock; //! The fix is to exclude mutex with a slash-slash-bang
       double R_c; 
       mutable std::map<UInt_t, std::pair<double,double> > cache; 
 
