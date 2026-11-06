@@ -74,9 +74,11 @@ target_sources(${PROJECT_NAME} PUBLIC
 # use warning flags in RelWithDebInfo mode, which is set to be the default mode
 target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:RelWithDebInfo>:-Wall -Wextra>)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC  RootFftwWrapper::RootFftwWrapper
-                                      PRIVATE ZLIB::ZLIB
-                                      PUBLIC  ROOT::HistPainter ROOT::Ged ROOT::Physics)
+target_link_libraries(${PROJECT_NAME} PUBLIC  
+  RootFftwWrapper::RootFftwWrapper ROOT::HistPainter ROOT::Ged ROOT::Physics)
+
+add_executable(test_rampdem ${CMAKE_CURRENT_SOURCE_DIR}/test/rampdemReader_test.cxx)
+target_link_libraries(test_rampdem ${PROJECT_NAME})
 
 set(DICTNAME G__${PROJECT_NAME})
 root_generate_dictionary(${DICTNAME} ${HEADER_FILES} MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
@@ -110,8 +112,13 @@ install(
 )
 
 # installing CERN ROOT's _rdict.pcm file
+# Do make sure to install the .rootmap file,
+# otherwise very confusing errors can happen when you run root macros. See:
+# https://root-forum.cern.ch/t/base-class-has-incomplete-type-if-i-running-from-rootscript/62827
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_rdict.pcm"
+  FILES 
+    "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_rdict.pcm"
+    "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.rootmap"
   DESTINATION lib
 )
 
